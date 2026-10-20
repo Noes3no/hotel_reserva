@@ -7,7 +7,7 @@
 ### =====================================================================
 
 ### Variables — sustituye por los datos de TU proyecto (Dashboard → Settings → API)
-@host = https://TU-PROYECTO.supabase.co
+@host = https://qlfqyjgbaihymjderskh.supabase.co
 @key = TU_CLAVE_PUBLICA_ANON
 @token = TU_ACCESS_TOKEN_DE_USUARIO
 

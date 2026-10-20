@@ -35,7 +35,7 @@ Materialización de la *Guía de Configuración y Prompt Maestro* (Práctica 9 �
 **2 · Variables de entorno.** Edita `proyecto-2/.env.local`:
 
 ```
-VITE_SUPABASE_URL=https://TU-PROYECTO.supabase.co
+VITE_SUPABASE_URL=https://qlfqyjgbaihymjderskh.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=TU_CLAVE_PUBLICA_ANON
 ```
 
@@ -67,7 +67,7 @@ npm run dev
 ## Validación de la API REST (Misión 5)
 
 ```bash
-curl "https://TU-PROYECTO.supabase.co/rest/v1/habitaciones?select=*" \
+curl "https://qlfqyjgbaihymjderskh.supabase.co/rest/v1/habitaciones?select=*" \
   -H "apikey: TU_CLAVE_PUBLICA_ANON" \
   -H "Authorization: Bearer TU_CLAVE_PUBLICA_ANON"
 ```
