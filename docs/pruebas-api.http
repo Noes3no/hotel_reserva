@@ -1,0 +1,134 @@
+### =====================================================================
+### Proyecto 2 · Validación de la API REST de Supabase (Misión 5)
+### Extensión recomendada: REST Client (VS Code / Antigravity IDE).
+###
+### ⚠ SEGURIDAD: usa SIEMPRE la clave pública (anon / publishable).
+###    La clave secreta (service_role) omite RLS y JAMÁS va al cliente.
+### =====================================================================
+
+### Variables — sustituye por los datos de TU proyecto (Dashboard → Settings → API)
+@host = https://TU-PROYECTO.supabase.co
+@key = TU_CLAVE_PUBLICA_ANON
+@token = TU_ACCESS_TOKEN_DE_USUARIO
+
+### ---------------------------------------------------------------------
+### 0 · POST → Autenticación: obtén el access_token para las pruebas de 1 a 5.
+###     Ejecuta esta petición, copia el campo "access_token" de la respuesta
+###     y pégalo en la variable @token de arriba.
+### ---------------------------------------------------------------------
+POST {{host}}/auth/v1/token?grant_type=password
+apikey: {{key}}
+Content-Type: application/json
+
+{
+  "email": "cliente@ejemplo.com",
+  "password": "TU_CONTRASENA"
+}
+
+### ---------------------------------------------------------------------
+### 1 · GET → SELECT · Catálogo público (anónimo). RLS solo muestra activas.
+###
+### Equivalente cURL:
+### curl -s "{{host}}/rest/v1/habitaciones?select=*&activa=eq.true" \
+###   -H "apikey: TU_CLAVE_PUBLICA_ANON" \
+###   -H "Authorization: Bearer TU_CLAVE_PUBLICA_ANON"
+### ---------------------------------------------------------------------
+GET {{host}}/rest/v1/habitaciones?select=id,nombre,descripcion,capacidad,precio_noche&activa=eq.true&order=nombre.asc
+apikey: {{key}}
+Authorization: Bearer {{key}}
+Accept: application/json
+
+### ---------------------------------------------------------------------
+### 2 · POST → INSERT · Crear reserva (solo autenticados; RLS exige
+###     usuario_id = auth.uid() y fecha_entrada >= current_date).
+###
+### Equivalente cURL:
+### curl -s -X POST "{{host}}/rest/v1/reservas" \
+###   -H "apikey: TU_CLAVE_PUBLICA_ANON" \
+###   -H "Authorization: Bearer TU_ACCESS_TOKEN" \
+###   -H "Content-Type: application/json" \
+###   --data '{"usuario_id":"UUID-USUARIO","habitacion_id":1,"fecha_entrada":"2027-01-15","fecha_salida":"2027-01-18","num_huespedes":3}'
+### ---------------------------------------------------------------------
+POST {{host}}/rest/v1/reservas
+apikey: {{key}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Prefer: return=representation
+
+{
+  "usuario_id": "UUID-DEL-USUARIO-AUTENTICADO",
+  "habitacion_id": 1,
+  "fecha_entrada": "2027-01-15",
+  "fecha_salida": "2027-01-18",
+  "num_huespedes": 3
+}
+
+### ---------------------------------------------------------------------
+### 3 · GET → SELECT · Mis reservas. Cambies el filtro como cambies,
+###     RLS devuelve EXCLUSIVAMENTE las filas del titular.
+### ---------------------------------------------------------------------
+GET {{host}}/rest/v1/reservas?select=*,habitaciones(nombre,precio_noche)&order=fecha_entrada.asc
+apikey: {{key}}
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### ---------------------------------------------------------------------
+### 4 · PATCH → UPDATE · Modificar fechas o número de huéspedes.
+###
+### Equivalente cURL:
+### curl -s -X PATCH "{{host}}/rest/v1/reservas?id=eq.UUID-RESERVA" \
+###   -H "Authorization: Bearer TU_ACCESS_TOKEN" -H "apikey: TU_CLAVE_PUBLICA_ANON" \
+###   -H "Content-Type: application/json" --data '{"fecha_entrada":"2027-01-16","fecha_salida":"2027-01-19","num_huespedes":2}'
+### ---------------------------------------------------------------------
+PATCH {{host}}/rest/v1/reservas?id=eq.UUID-DE-LA-RESERVA
+apikey: {{key}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Prefer: return=representation
+
+{
+  "fecha_entrada": "2027-01-16",
+  "fecha_salida": "2027-01-19",
+  "num_huespedes": 2
+}
+
+### ---------------------------------------------------------------------
+### 5 · DELETE → DELETE · Cancelar / eliminar una reserva propia.
+### ---------------------------------------------------------------------
+DELETE {{host}}/rest/v1/reservas?id=eq.UUID-DE-LA-RESERVA
+apikey: {{key}}
+Authorization: Bearer {{token}}
+Prefer: return=representation
+
+### ---------------------------------------------------------------------
+### 6 · POST → INSERT · Sin autenticar. Esperado: 401/403
+###     (criterio de aceptación 1: solo usuarios autenticados reservan).
+### ---------------------------------------------------------------------
+POST {{host}}/rest/v1/reservas
+apikey: {{key}}
+Authorization: Bearer {{key}}
+Content-Type: application/json
+
+{
+  "habitacion_id": 1,
+  "fecha_entrada": "2027-01-15",
+  "fecha_salida": "2027-01-18",
+  "num_huespedes": 2
+}
+
+### ---------------------------------------------------------------------
+### 7 · POST → INSERT · Fecha del pasado. Esperado: error 4xx
+###     (criterio de aceptación 2: prohibido reservar en el pasado).
+### ---------------------------------------------------------------------
+POST {{host}}/rest/v1/reservas
+apikey: {{key}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "usuario_id": "UUID-DEL-USUARIO-AUTENTICADO",
+  "habitacion_id": 1,
+  "fecha_entrada": "2020-01-01",
+  "fecha_salida": "2020-01-05",
+  "num_huespedes": 2
+}

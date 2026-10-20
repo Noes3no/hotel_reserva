@@ -1,0 +1,17 @@
+# Variables de entorno — la clave secreta (service_role) omite RLS
+.env
+.env.*
+!.env.example
+*.local
+
+# Dependencias y builds
+node_modules
+dist
+dist-ssr
+coverage
+
+# Logs y sistema
+logs
+*.log
+.DS_Store
+Thumbs.db

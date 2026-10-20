@@ -1,0 +1,28 @@
+# Dependencias
+node_modules/
+
+# Builds y artefactos
+dist/
+dist-ssr/
+coverage/
+*.tsbuildinfo
+
+# Variables de entorno — NUNCA subir claves.
+# La clave secreta (service_role) omite RLS: una fuga comprometería todos los datos.
+.env
+.env.*
+!.env.example
+*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editor y sistema operativo
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
