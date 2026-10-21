@@ -30,7 +30,7 @@
 
   --ok: #2c6e49;
   --ok-050: #e3f0e7;
-  --warn: #8a6d1c;
+  --warn: #705610;
   --warn-050: #f8efdb;
   --muted: #65706a;
   --muted-050: #efeeea;
@@ -977,6 +977,69 @@ h1, h2, h3 {
   display: grid;
   gap: 14px;
   align-content: start;
+}
+
+/* ---------- HU-12 · sello de entorno de prueba ---------- */
+.nav-teste {
+  background: var(--warn-050);
+  color: var(--warn);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex: none;
+}
+
+.nota-prueba {
+  margin: 0 0 20px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--warn);
+  display: inline-block;
+  background: var(--warn-050);
+  border-radius: 999px;
+  padding: 8px 16px;
+  max-width: 72ch;
+}
+
+/* sello de pruebas integrado en el mástil: segunda fila pegada a la barra,
+   visible en toda la web y sin cubrir titulares jamás */
+.cinta-teste {
+  height: 34px;
+  background: var(--warn-050);
+  overflow: hidden;
+  position: relative;
+  pointer-events: none;
+}
+
+.cinta-teste_marca {
+  position: absolute;
+  left: -6%;
+  top: 50%;
+  width: 112%;
+  transform: rotate(-4.5deg) translateY(-50%);
+  white-space: nowrap;
+  font: 700 13.5px/1.6 var(--font-text);
+  letter-spacing: 0.1em;
+  color: var(--warn);
+  animation: cinta-deriva 34s linear infinite;
+}
+
+@keyframes cinta-deriva {
+  from { transform: rotate(-4.5deg) translateY(-50%) translateX(0); }
+  to { transform: rotate(-4.5deg) translateY(-50%) translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cinta-teste_marca { animation: none; }
+}
+
+/* en pantallas estrechas la cinta ya dice lo necesario */
+@media (max-width: 900px) {
+  .nav-teste { display: none; }
 }
 
 /* ---------- Mensajes al cliente (WhatsApp / email · CA-7.7) ---------- */

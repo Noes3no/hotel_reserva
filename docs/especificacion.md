@@ -121,6 +121,14 @@ Como **visitante**, quiero **completar habitación, fechas y huéspedes sin cuen
 - CA-10.4 La reserva pendiente sobrevive a la redirección de Google (se conserva localmente y caduca a los 15 minutos).
 - CA-10.5 Si el proveedor Google no está configurado en Supabase, se muestra un mensaje claro y los datos de la reserva se conservan para reintentar.
 
+### HU-12 · Entorno de prueba identificado — Actores: todos
+Como **visitante, cliente o propietario**, quiero **que la web avise de todo que es un prototipo de prueba**, para que nadie la confunda con un negocio real.
+
+**Criterios de aceptación**
+- CA-12.1 Sobre toda la web (incluidos modales) se ve una marca de agua diagonal ascendente con el texto `WEB TEST - NOT FUNCION`, sin bloquear clics ni el teclado.
+- CA-12.2 El mástil lleva la etiqueta `WEB TEST` junto al logotipo, y la información de contacto visible es irreal: teléfono `+34 000 000 000` y email `webtest@ejemplo.test` (el pie lo declara como datos ficticios).
+- CA-12.3 La base de datos carga una temporada ficticia de 32 reservas (noviembre 2026 → agosto 2027, 5 clientes demo, contraseña `LaSolana2027!`) con treinta estados y habitaciones repartidas, para que el panel y las agendas de calendario muestren ejemplos verosímiles.
+
 ## 3. Modelo de datos
 
 ### 3.1 Entidades

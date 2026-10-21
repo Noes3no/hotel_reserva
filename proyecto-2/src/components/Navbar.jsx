@@ -1,6 +1,8 @@
-// Barra superior sticky: logo, anclas de secciones y estado de sesión.
+// Barra superior sticky: logo, etiqueta WEB TEST, anclas de secciones y
+// estado de sesión. Debajo navega el sello diagonal de entorno de prueba.
 
 import { inicial } from '../lib/ayudas'
+import MarcaPrueba from './MarcaPrueba'
 
 export default function Navbar({ sesion, esAdmin, onSalir, abrirAuth }) {
   return (
@@ -13,6 +15,8 @@ export default function Navbar({ sesion, esAdmin, onSalir, abrirAuth }) {
           </svg>
           La Solana
         </a>
+
+        <span className="nav-teste" title="Entorno de pruebas: no es una web real">WEB TEST</span>
 
         <nav aria-label="Secciones">
           <ul className="nav-links">
@@ -41,6 +45,8 @@ export default function Navbar({ sesion, esAdmin, onSalir, abrirAuth }) {
           )}
         </div>
       </div>
+
+      <MarcaPrueba />
     </header>
   )
 }

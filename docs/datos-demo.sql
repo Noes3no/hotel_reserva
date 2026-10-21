@@ -6,9 +6,11 @@
 --   1. Crea 5 clientes de demostración en Supabase Auth (emails
 --      confirmados, sin pasar por el límite de envío de correos).
 --      El trigger `al_registrarse` genera sus perfiles automáticamente.
---   2. Crea reservas de esos clientes desde noviembre 2026 hasta
---      agosto 2027 (la última estancia termina el 30/08/2027), con
---      estados pendiente / confirmada / cancelada.
+--   2. Crea 32 reservas de demostración (temporada ficticia completa)
+--      de noviembre 2026 a agosto 2027 (la última estancia termina el
+--      30/08/2027), repartidas por las 10 habitaciones y con estados
+--      pendiente / confirmada / cancelada. El panel del propietario
+--      (HU-07) y las agendas de calendario salen llenos de ejemplos.
 --
 -- Notas:
 --   · Idempotente: borra antes los datos de demo y vuelve a crearlos.
@@ -95,6 +97,24 @@ where u.id in (
 )
 on conflict (id) do nothing;
 
+-- Contactos ficticios de los demo (CA-7.7): el panel puede escribir por
+-- WhatsApp (teléfono) o email. El email sale de Auth si faltara.
+update public.perfiles set telefono = '+34600000001',
+  email = coalesce(email, (select email from auth.users where id = perfiles.id))
+ where id = '11111111-1111-4111-8111-111111111111';
+update public.perfiles set telefono = '+34600000002',
+  email = coalesce(email, (select email from auth.users where id = perfiles.id))
+ where id = '22222222-2222-4222-8222-222222222222';
+update public.perfiles set telefono = '+34600000003',
+  email = coalesce(email, (select email from auth.users where id = perfiles.id))
+ where id = '33333333-3333-4333-8333-333333333333';
+update public.perfiles set telefono = '+34600000004',
+  email = coalesce(email, (select email from auth.users where id = perfiles.id))
+ where id = '44444444-4444-4444-8444-444444444444';
+update public.perfiles set telefono = '+34600000005',
+  email = coalesce(email, (select email from auth.users where id = perfiles.id))
+ where id = '55555555-5555-4555-8555-555555555555';
+
 -- ---------------------------------------------------------------------
 -- 2. Reservas de los clientes (nov 2026 → agosto 2027)
 --    Se referencian habitaciones por nombre (más robusto que por id).
@@ -109,47 +129,152 @@ where usuario_id in (
   '55555555-5555-4555-8555-555555555555'
 );
 
+-- ---------------------------------------------------------------------
+-- 2. Reservas de los clientes (temporada de demo: nov 2026 → agosto 2027)
+--    32 estancias repartidas por las 10 habitaciones y todos los meses,
+--    con los tres estados (pendiente / confirmada / cancelada).
+--    Se referencian habitaciones por nombre; si una no existiera, su
+--    bloque se salta sin romper el resto (select ... where nombre = ...).
+--    Huéspedes: least(N, h.capacidad) respeta siempre la capacidad real.
+--    Sin solapes por habitación: lo valida la restricción EXCLUDE.
+-- ---------------------------------------------------------------------
+delete from public.reservas
+where usuario_id in (
+  '11111111-1111-4111-8111-111111111111',
+  '22222222-2222-4222-8222-222222222222',
+  '33333333-3333-4333-8333-333333333333',
+  '44444444-4444-4444-8444-444444444444',
+  '55555555-5555-4555-8555-555555555555'
+);
+
 insert into public.reservas (usuario_id, habitacion_id, fecha_entrada, fecha_salida, num_huespedes, estado)
-values
-  -- María · puente de noviembre (confirmada)
-  ('11111111-1111-4111-8111-111111111111',
-   (select id from public.habitaciones where nombre = 'Suite El Mirador de Guadarrama'),
-   '2026-11-06', '2026-11-09', 2, 'confirmada'),
-
-  -- Juan · Nochebuena (confirmada)
-  ('22222222-2222-4222-8222-222222222222',
-   (select id from public.habitaciones where nombre = 'Habitación Doble La Castellana'),
-   '2026-12-23', '2026-12-27', 2, 'confirmada'),
-
-  -- Juan · escapada de febrero (pendiente)
-  ('22222222-2222-4222-8222-222222222222',
-   (select id from public.habitaciones where nombre = 'Suite Buitrago del Lozoya'),
-   '2027-02-12', '2027-02-14', 2, 'pendiente'),
-
-  -- Laura · Semana Santa en familia (confirmada)
-  ('33333333-3333-4333-8333-333333333333',
-   (select id from public.habitaciones where nombre = 'Familiar El Escorial'),
-   '2027-03-26', '2027-03-31', 4, 'confirmada'),
-
-  -- Carlos · estancia cancelada (demo del ciclo de vida; no cuenta para solapes)
-  ('44444444-4444-4444-8444-444444444444',
-   (select id from public.habitaciones where nombre = 'Cabaña Manzanares el Real'),
-   '2026-12-04', '2026-12-06', 2, 'cancelada'),
-
-  -- Carlos · julio (pendiente)
-  ('44444444-4444-4444-8444-444444444444',
-   (select id from public.habitaciones where nombre = 'Cabaña Manzanares el Real'),
-   '2027-07-14', '2027-07-19', 3, 'pendiente'),
-
-  -- María · repite en agosto (pendiente)
-  ('11111111-1111-4111-8111-111111111111',
-   (select id from public.habitaciones where nombre = 'Suite El Mirador de Guadarrama'),
-   '2027-08-10', '2027-08-16', 2, 'pendiente'),
-
-  -- Elena · casa entera para cerrar la temporada (pendiente, hasta 30/08/2027)
-  ('55555555-5555-4555-8555-555555555555',
-   (select id from public.habitaciones where nombre = 'Casa Completa Sierra Norte'),
-   '2027-08-20', '2027-08-30', 6, 'pendiente');
+-- María · puente de noviembre 2026 (confirmada)
+select '11111111-1111-4111-8111-111111111111', h.id, '2026-11-06', '2026-11-09', least(2, h.capacidad), 'confirmada'
+  from public.habitaciones h where h.nombre = 'Suite El Mirador de Guadarrama'
+union all
+-- Elena · estancia de noviembre (confirmada, individual)
+select '55555555-5555-4555-8555-555555555555', h.id, '2026-11-10', '2026-11-12', least(1, h.capacidad), 'confirmada'
+  from public.habitaciones h where h.nombre = 'Individual El Pardo'
+union all
+-- Carlos · escapada de noviembre (confirmada)
+select '44444444-4444-4444-8444-444444444444', h.id, '2026-11-13', '2026-11-15', least(2, h.capacidad), 'confirmada'
+  from public.habitaciones h where h.nombre = 'Loft Alcalá de Henares'
+union all
+-- Laura · puente de noviembre (pendiente)
+select '33333333-3333-4333-8333-333333333333', h.id, '2026-11-20', '2026-11-22', least(2, h.capacidad), 'pendiente'
+  from public.habitaciones h where h.nombre = 'Habitación Doble La Castellana'
+union all
+-- Laura · fin de semana de adjetivos (pendiente)
+select '33333333-3333-4333-8333-333333333333', h.id, '2026-11-27', '2026-11-29', least(2, h.capacidad), 'pendiente'
+  from public.habitaciones h where h.nombre = 'Apartamento Aranjuez'
+union all
+-- Carlos · estancia cancelada (demo del ciclo de vida; no cuenta para solapes)
+select '44444444-4444-4444-8444-444444444444', h.id, '2026-12-04', '2026-12-06', least(2, h.capacidad), 'cancelada'
+  from public.habitaciones h where h.nombre = 'Cabaña Manzanares el Real'
+union all
+-- Juan · Nochebuena (confirmada)
+select '22222222-2222-4222-8222-222222222222', h.id, '2026-12-23', '2026-12-27', least(2, h.capacidad), 'confirmada'
+  from public.habitaciones h where h.nombre = 'Habitación Doble La Castellana'
+union all
+-- Elena · despedida del año (confirmada)
+select '55555555-5555-4555-8555-555555555555', h.id, '2026-12-30', '2027-01-03', least(4, h.capacidad), 'confirmada'
+  from public.habitaciones h where h.nombre = 'Familiar El Escorial'
+union all
+-- María · arranque de año (confirmada)
+select '11111111-1111-4111-8111-111111111111', h.id, '2027-01-02', '2027-01-05', least(4, h.capacidad), 'confirmada'
+  from public.habitaciones h where h.nombre = 'Casa Completa Sierra Norte'
+union all
+-- Juan · primeros fríos (confirmada, individual)
+select '22222222-2222-4222-8222-222222222222', h.id, '2027-01-18', '2027-01-20', least(1, h.capacidad), 'confirmada'
+  from public.habitaciones h where h.nombre = 'Individual El Pardo'
+union all
+-- Laura · cierre de enero (pendiente)
+select '33333333-3333-4333-8333-333333333333', h.id, '2027-01-29', '2027-01-31', least(2, h.capacidad), 'pendiente'
+  from public.habitaciones h where h.nombre = 'Loft Alcalá de Henares'
+union all
+-- Juan · escapada de febrero (pendiente)
+select '22222222-2222-4222-8222-222222222222', h.id, '2027-02-12', '2027-02-14', least(2, h.capacidad), 'pendiente'
+  from public.habitaciones h where h.nombre = 'Suite Buitrago del Lozoya'
+union all
+-- Elena · invierno con chimenea (confirmada)
+select '55555555-5555-4555-8555-555555555555', h.id, '2027-02-19', '2027-02-22', least(3, h.capacidad), 'confirmada'
+  from public.habitaciones h where h.nombre = 'Cabaña Manzanares el Real'
+union all
+-- María · esquí de fondo (pendiente)
+select '11111111-1111-4111-8111-111111111111', h.id, '2027-02-26', '2027-02-28', least(2, h.capacidad), 'pendiente'
+  from public.habitaciones h where h.nombre = 'Ático con vistas de la plaza de Chinchón'
+union all
+-- Laura · primavera temprana (pendiente, individual)
+select '33333333-3333-4333-8333-333333333333', h.id, '2027-03-08', '2027-03-10', least(1, h.capacidad), 'pendiente'
+  from public.habitaciones h where h.nombre = 'Individual El Pardo'
+union all
+-- María · marca de la casa (confirmada)
+select '11111111-1111-4111-8111-111111111111', h.id, '2027-03-12', '2027-03-14', least(2, h.capacidad), 'confirmada'
+  from public.habitaciones h where h.nombre = 'Apartamento Aranjuez'
+union all
+-- Elena · primeras lluvias (pendiente)
+select '55555555-5555-4555-8555-555555555555', h.id, '2027-03-05', '2027-03-08', least(2, h.capacidad), 'pendiente'
+  from public.habitaciones h where h.nombre = 'Suite Buitrago del Lozoya'
+union all
+-- Laura · Semana Santa en familia (confirmada)
+select '33333333-3333-4333-8333-333333333333', h.id, '2027-03-26', '2027-03-31', least(4, h.capacidad), 'confirmada'
+  from public.habitaciones h where h.nombre = 'Familiar El Escorial'
+union all
+-- Laura · primicia de abril (confirmada)
+select '33333333-3333-4333-8333-333333333333', h.id, '2027-04-02', '2027-04-05', least(3, h.capacidad), 'confirmada'
+  from public.habitaciones h where h.nombre = 'Ático con vistas de la plaza de Chinchón'
+union all
+-- Carlos · puente de abril (pendiente)
+select '44444444-4444-4444-8444-444444444444', h.id, '2027-04-09', '2027-04-12', least(3, h.capacidad), 'pendiente'
+  from public.habitaciones h where h.nombre = 'Apartamento Aranjuez'
+union all
+-- Elena · primero de mayo (pendiente)
+select '55555555-5555-4555-8555-555555555555', h.id, '2027-05-07', '2027-05-10', least(2, h.capacidad), 'pendiente'
+  from public.habitaciones h where h.nombre = 'Loft Alcalá de Henares'
+union all
+-- María · mayo con piscina (confirmada)
+select '11111111-1111-4111-8111-111111111111', h.id, '2027-05-21', '2027-05-24', least(3, h.capacidad), 'confirmada'
+  from public.habitaciones h where h.nombre = 'Cabaña Manzanares el Real'
+union all
+-- Elena · junio luminoso (confirmada)
+select '55555555-5555-4555-8555-555555555555', h.id, '2027-06-02', '2027-06-06', least(2, h.capacidad), 'confirmada'
+  from public.habitaciones h where h.nombre = 'Habitación Doble La Castellana'
+union all
+-- Carlos · solsticio (pendiente)
+select '44444444-4444-4444-8444-444444444444', h.id, '2027-06-18', '2027-06-21', least(3, h.capacidad), 'pendiente'
+  from public.habitaciones h where h.nombre = 'Familiar El Escorial'
+union all
+-- Juan · fin de curso (pendiente)
+select '22222222-2222-4222-8222-222222222222', h.id, '2027-06-25', '2027-06-28', least(3, h.capacidad), 'pendiente'
+  from public.habitaciones h where h.nombre = 'Ático con vistas de la plaza de Chinchón'
+union all
+-- Elena · verano histórico (confirmada)
+select '55555555-5555-4555-8555-555555555555', h.id, '2027-07-02', '2027-07-06', least(3, h.capacidad), 'confirmada'
+  from public.habitaciones h where h.nombre = 'Apartamento Aranjuez'
+union all
+-- Laura · pleno julio (confirmada)
+select '33333333-3333-4333-8333-333333333333', h.id, '2027-07-01', '2027-07-04', least(2, h.capacidad), 'confirmada'
+  from public.habitaciones h where h.nombre = 'Suite Buitrago del Lozoya'
+union all
+-- Carlos · julio largo (pendiente)
+select '44444444-4444-4444-8444-444444444444', h.id, '2027-07-14', '2027-07-19', least(3, h.capacidad), 'pendiente'
+  from public.habitaciones h where h.nombre = 'Cabaña Manzanares el Real'
+union all
+-- Elena · principios de agosto (confirmada)
+select '55555555-5555-4555-8555-555555555555', h.id, '2027-08-01', '2027-08-05', least(3, h.capacidad), 'confirmada'
+  from public.habitaciones h where h.nombre = 'Ático con vistas de la plaza de Chinchón'
+union all
+-- Carlos · agosto de individual (pendiente)
+select '44444444-4444-4444-8444-444444444444', h.id, '2027-08-02', '2027-08-04', least(1, h.capacidad), 'pendiente'
+  from public.habitaciones h where h.nombre = 'Individual El Pardo'
+union all
+-- María · repite en agosto (pendiente)
+select '11111111-1111-4111-8111-111111111111', h.id, '2027-08-10', '2027-08-16', least(2, h.capacidad), 'pendiente'
+  from public.habitaciones h where h.nombre = 'Suite El Mirador de Guadarrama'
+union all
+-- Elena · casa entera para cerrar la temporada (pendiente, hasta 30/08/2027)
+select '55555555-5555-4555-8555-555555555555', h.id, '2027-08-20', '2027-08-30', least(6, h.capacidad), 'pendiente'
+  from public.habitaciones h where h.nombre = 'Casa Completa Sierra Norte';
 
 -- ---------------------------------------------------------------------
 -- 3. (Opcional) Promocionar tu cuenta a administrador del negocio.
