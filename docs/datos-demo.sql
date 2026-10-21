@@ -67,8 +67,8 @@ values
    now(), now(), '', '', '', '', '');
 
 -- Identidad de acceso (flujo estándar de Supabase Auth para email/contraseña)
-insert into auth.identities (id, user_id, provider_id, identity_data, last_sign_in_at, created_at, updated_at)
-select gen_random_uuid(), u.id, 'email',
+insert into auth.identities (id, user_id, provider_id, provider, identity_data, last_sign_in_at, created_at, updated_at)
+select gen_random_uuid(), u.id, 'email', 'email',
        jsonb_build_object('sub', u.id::text, 'email', u.email, 'email_verified', true),
        now(), now(), now()
 from auth.users u
