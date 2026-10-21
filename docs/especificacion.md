@@ -101,9 +101,19 @@ Como **visitante**, quiero **navegar una portada cálida y rural con buscador de
 **Criterios de aceptación**
 - CA-9.1 La portada muestra hero con buscador (destino, fechas ≥ hoy, huéspedes) y el catálogo como tarjetas con fotografía.
 - CA-9.2 El buscador filtra el catálogo por capacidad (huéspedes) sin necesidad de sesión.
-- CA-9.3 El botón «Reservar» exige sesión: si no la hay, se muestra autenticación (Registro/Iniciar sesión) antes del formulario de reserva.
+- CA-9.3 El botón «Reservar» abre el formulario de reserva sin exigir sesión: la autenticación se exige como **último paso** (ver HU-10).
 - CA-9.4 Solo con sesión activa se ven «Mis reservas» y en ellas el estado (`pendiente`/`confirmada`/`cancelada`) con opción de cancelar.
 - CA-9.5 La dirección de la casa se toma como única («La Solana»); no hay catálogo de destinos múltiples.
+
+### HU-10 · Reservar con registro al final — Actores: visitante anónimo → Cliente
+Como **visitante**, quiero **completar habitación, fechas y huéspedes sin cuenta, y autenticarme solo como último paso**, para no frenar la reserva con registros anticipados.
+
+**Criterios de aceptación**
+- CA-10.1 El visitante elige habitación, fechas ≥ hoy y huéspedes sin estar registrado; ve el precio total antes de autenticarse.
+- CA-10.2 El último paso exige una cuenta: **registro con email/contraseña o continuar con Google (Gmail)**; también permite iniciar sesión si ya tiene cuenta.
+- CA-10.3 Tras autenticarse, la reserva se crea **automáticamente** con los datos introducidos y queda a nombre de la cuenta autenticada (`usuario_id = auth.uid()`); el visitante no reintenta nada.
+- CA-10.4 La reserva pendiente sobrevive a la redirección de Google (se conserva localmente y caduca a los 15 minutos).
+- CA-10.5 Si el proveedor Google no está configurado en Supabase, se muestra un mensaje claro y los datos de la reserva se conservan para reintentar.
 
 ## 3. Modelo de datos
 
@@ -197,6 +207,6 @@ Referencias auditadas en `img - web`: (a) tablero de casas rurales con piedra, m
 | Paleta | Fondo crema `#FBF7F1`, tinta `#231A12`, terracota primario `#B8542F`, verde pino `#2F4A3A`, líneas cálidas `#ECE4D8` |
 | Tipografía | Fraunces (serif, títulos y logotipo) + Inter (sans, UI y datos); autoalojadas en `proyecto-2/public/fonts` |
 | Fotografía | 19 imágenes con licencia libre (Unsplash/Pexels) coherentes con el tablero: cabañas de madera, casas de campo, piscina de madera, bosque, valle, spa, desayuno. Origen en `proyecto-2/public/img/CREDITOS.txt` |
-| Componentes clave | Navbar sticky crema; hero full-bleed con buscador píldora; tarjetas 4:3 con hover suave; badges de estado de reserva (pendiente/confirmada/cancelada); modal de reserva y de autenticación |
+| Componentes clave | Navbar sticky crema; hero full-bleed con buscador píldora; tarjetas 4:3 con hover suave; badges de estado de reserva (pendiente/confirmada/cancelada); modal de reserva en dos pasos (datos → último paso: cuenta por email o Google); modal de autenticación |
 | Accesibilidad | Contraste AA, foco visible, `aria-live` en errores, etiquetas en todos los campos, navegación por teclado en modales (Escape/cierre con backdrop) |
 

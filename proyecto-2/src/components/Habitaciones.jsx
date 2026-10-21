@@ -4,7 +4,7 @@ import { euros, imgHabitacion } from '../lib/ayudas'
 
 const TAGS = ['La más solicitada', 'Vista al valle', 'Familiar', 'Entre pinos', 'Con encanto', 'Junto al agua', 'De piedra y luz', 'Amaneceres']
 
-export default function Habitaciones({ habitaciones, estadoCat, filtros, onReservar, sesion }) {
+export default function Habitaciones({ habitaciones, estadoCat, filtros, onReservar }) {
   return (
     <section className="seccion" id="habitaciones">
       <div className="cabecera-seccion">

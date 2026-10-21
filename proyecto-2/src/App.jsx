@@ -15,7 +15,7 @@ import MisReservas from './components/MisReservas'
 import AuthModal from './components/AuthModal'
 import BookingModal from './components/BookingModal'
 import Footer from './components/Footer'
-import { hoyISO } from './lib/ayudas'
+import { tomarReservaPendiente } from './lib/ayudas'
 
 export default function App() {
   const [sesion, setSesion] = useState({ user: null, perfil: null })
@@ -95,26 +95,49 @@ export default function App() {
   }, [])
 
   /* ---------- Mis reservas cuando hay sesión (RLS devuelve solo las propias) ---------- */
-  useEffect(() => {
-    if (!sesion.user) return
-    let vivo = true
+  const refrescarReservas = useCallback(async () => {
     setCargandoReservas(true)
-    supabase
+    const { data, error } = await supabase
       .from('reservas')
       .select('*, habitacion:habitaciones(id, nombre)')
       .order('fecha_entrada', { ascending: true })
-      .then(({ data, error }) => {
-        if (!vivo) return
-        setCargandoReservas(false)
-        if (error) {
-          setEstadoReservas({ tipo: 'error', mensaje: 'No se pudieron leer tus reservas: ' + error.message })
-        } else {
-          setReservas(data)
-          setEstadoReservas({ tipo: 'ok', mensaje: '' })
-        }
-      })
+    setCargandoReservas(false)
+    if (error) {
+      setEstadoReservas({ tipo: 'error', mensaje: 'No se pudieron leer tus reservas: ' + error.message })
+      return
+    }
+    setReservas(data ?? [])
+    setEstadoReservas({ tipo: 'ok', mensaje: '' })
+  }, [])
+
+  useEffect(() => {
+    if (!sesion.user) return
+    refrescarReservas()
+  }, [sesion.user, refrescarReservas])
+
+  /* ---------- Reserva pendiente (HU-10): creada al autenticarse ----------
+     Cubre el regreso de Google (redirección) y la confirmación por email.
+     Punto ÚNICO de inserción para evitar reservas duplicadas. */
+  useEffect(() => {
+    if (!sesion.user) return
+    const pendiente = tomarReservaPendiente()
+    if (!pendiente) return
+
+    let vivo = true
+    ;(async () => {
+      const error = await insertarReserva(sesion.user, pendiente)
+      if (!vivo) return
+      if (error) {
+        avisar('Tu sesión está lista, pero la reserva no se pudo crear: ' + error)
+        return
+      }
+      setModalReserva(null)
+      await refrescarReservas()
+      avisar('¡Reserva confirmada! Te esperamos en La Solana.')
+      document.getElementById('mis-reservas')?.scrollIntoView({ behavior: 'smooth' })
+    })()
     return () => { vivo = false }
-  }, [sesion.user])
+  }, [sesion.user, refrescarReservas, avisar])
 
   /* ---------- Acciones ---------- */
   function abrirAuth(pane, razon = '') {
@@ -122,13 +145,18 @@ export default function App() {
     setModalAuth(pane)
   }
 
+  /** HU-10: reservar ya no exige sesión; la cuenta se pide al final. */
   function reservar(habitacion) {
-    if (!sesion.user) {
-      avisar('Para reservar necesitas una cuenta: abre el registro o inicia sesión.')
-      abrirAuth('registro', 'Para reservar «' + habitacion.nombre + '» inicia sesión o crea tu cuenta.')
-      return
-    }
     setModalReserva(habitacion)
+  }
+
+  /** Inserción centralizada de reservas (POST → INSERT). Devuelve el error o ''. */
+  async function insertarReserva(user, datos) {
+    const { error } = await supabase.from('reservas').insert({
+      usuario_id: user.id,
+      ...datos,
+    })
+    return error ? (error.message || 'La API REST rechazó la reserva.') : ''
   }
 
   async function cancelarReserva(r) {
@@ -144,16 +172,14 @@ export default function App() {
     avisar('Reserva cancelada. Si cambias de idea, ya sabes dónde estamos.')
   }
 
-  function reservaCreada() {
-    setModalReserva(null)
-    avisar('¡Reserva creada! Queda pendiente de confirmación del anfitrión.')
-    if (sesion.user) {
-      supabase
-        .from('reservas')
-        .select('*, habitacion:habitaciones(id, nombre)')
-        .order('fecha_entrada', { ascending: true })
-        .then(({ data }) => data && setReservas(data))
+  /** Confirmada desde el modal (con sesión previa): refresca y avisa. */
+  async function reservaConfirmada(datos) {
+    const error = await insertarReserva(sesion.user, datos)
+    if (!error) {
+      await refrescarReservas()
+      avisar('¡Reserva creada! Queda pendiente de confirmación del anfitrión.')
     }
+    return error
   }
 
   async function salir() {
@@ -177,7 +203,6 @@ export default function App() {
           habitaciones={visibles}
           estadoCat={estadoCat}
           filtros={filtros}
-          sesion={sesion}
           onReservar={reservar}
         />
         <Entorno />
@@ -208,8 +233,8 @@ export default function App() {
         <BookingModal
           sesion={sesion}
           habitacion={modalReserva}
-          filtros={{ ...filtros, desde: filtros.desde || hoyISO() }}
-          onCreado={reservaCreada}
+          filtros={filtros}
+          onConfirmada={reservaConfirmada}
           cerrar={() => setModalReserva(null)}
         />
       )}
