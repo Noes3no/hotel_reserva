@@ -8,8 +8,23 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { euros, hoyISO, imgHabitacion, noches } from '../lib/ayudas'
+import Calendario from './Calendario'
 
 const FILTROS = ['todas', 'pendiente', 'confirmada', 'cancelada']
+const SIN_TITULO = new Set(['Habitación', 'Habitaciones', 'Apartamento', 'Cabaña', 'Casa', 'Loft', 'Suite', 'Familiar', 'Individual'])
+
+/** Nombre corto para las píldoras del calendario: salta la palabra genérica. */
+function etiquetaCorta(nombre = '') {
+  const partes = nombre.split(/\s+/).filter(Boolean)
+  if (partes.length > 1 && SIN_TITULO.has(partes[0])) return partes.slice(0, 2).join(' ')
+  return (partes[0] || 'Reserva')
+}
+
+/** Suma días a una fecha ISO (YYYY-MM-DD). */
+function sumaDias(iso, dias) {
+  const [a, m, d] = iso.split('-').map(Number)
+  return new Date(a, m - 1, d + dias).toLocaleDateString('en-CA')
+}
 
 export default function PanelAdmin({ onAvisar }) {
   const [reservas, setReservas] = useState([])
@@ -20,6 +35,7 @@ export default function PanelAdmin({ onAvisar }) {
   const [editando, setEditando] = useState(null) // id de la reserva abierta
   const [borrador, setBorrador] = useState({ fecha_entrada: '', fecha_salida: '', num_huespedes: '' })
   const [guardando, setGuardando] = useState(false)
+  const [vista, setVista] = useState('lista') // lista | calendario
   const hoy = hoyISO()
 
   /* Todas las reservas con cliente y habitación incrustados (SELECT + JOIN) */
@@ -27,7 +43,7 @@ export default function PanelAdmin({ onAvisar }) {
     setCargando(true)
     const { data, error } = await supabase
       .from('reservas')
-      .select('*, habitacion:habitaciones(id, nombre, precio_noche, capacidad), cliente:perfiles(nombre_completo)')
+      .select('*, habitacion:habitaciones(id, nombre, precio_noche, capacidad), cliente:perfiles(nombre_completo, email, telefono)')
       .order('fecha_entrada', { ascending: true })
     setCargando(false)
     if (error) {
@@ -115,13 +131,62 @@ export default function PanelAdmin({ onAvisar }) {
     }
   }, [reservas])
 
+  /* CA-7.8: mapa día → reservas activas, para las píldoras de la agenda */
+  const porDia = useMemo(() => {
+    const mapa = new Map()
+    for (const r of reservas) {
+      if (r.estado === 'cancelada') continue
+      let d = r.fecha_entrada
+      while (d < r.fecha_salida) {
+        mapa.set(d, [...(mapa.get(d) ?? []), r])
+        d = sumaDias(d, 1)
+      }
+    }
+    return mapa
+  }, [reservas])
+
+  const tramos = useMemo(
+    () => reservas
+      .filter((r) => r.estado !== 'cancelada')
+      .map((r) => ({
+        habitacion_id: r.habitacion_id,
+        fecha_entrada: r.fecha_entrada,
+        fecha_salida: r.fecha_salida,
+        estado: r.estado,
+      })),
+    [reservas],
+  )
+
+  /** CA-7.7: redacta el mensaje preparado para WhatsApp o email. */
+  function mensajeReserva(r) {
+    return [
+      `Hola ${r.cliente?.nombre_completo ?? ''}:`,
+      `te escribo de La Solana por tu reserva de «${r.habitacion?.nombre ?? ''}»`,
+      `(llegada ${r.fecha_entrada}, salida ${r.fecha_salida}, ${r.num_huespedes} huéspedes, estado: ${r.estado}).`,
+      'Cualquier cambio, se ajusta sin problema. Saludos.',
+    ].join(' ')
+  }
+
+  const whatsappUrl = (r) => {
+    const tel = (r.cliente?.telefono ?? '').replace(/\D/g, '')
+    if (!tel) return null
+    return `https://wa.me/${tel}?text=${encodeURIComponent(mensajeReserva(r))}`
+  }
+
+  const emailUrl = (r) => {
+    const email = r.cliente?.email
+    if (!email) return null
+    return `mailto:${email}?subject=${encodeURIComponent('Tu reserva en La Solana')}&body=${encodeURIComponent(mensajeReserva(r))}`
+  }
+
   return (
     <section className="seccion" id="panel-admin" data-tinta="oscuro" data-reveal>
       <div className="cabecera-seccion">
         <h2>Todas las reservas del negocio</h2>
         <p>
-          Confirmas, cancelas, pospones fechas o ajustas huéspedes (HU-07). La base de datos
-          vela por las reglas: si un cambio choca con otra reserva o la capacidad, te lo dirá.
+          Confirmas, cancelas, pospones fechas o ajustas huéspedes; agenda calendario para ver los días
+          ocupados y mensajes preparados por WhatsApp o email (HU-07). La base de datos vela por las reglas:
+          si un cambio choca con otra reserva o con la capacidad, te lo dirá.
         </p>
       </div>
 
@@ -156,19 +221,65 @@ export default function PanelAdmin({ onAvisar }) {
           aria-label="Buscar reservas"
         />
         <button className="btn btn-ghost" onClick={cargar}>Recargar</button>
+        <div className="chips" role="group" aria-label="Vista del panel" style={{ marginLeft: 'auto' }}>
+          <button className={`chip ${vista === 'lista' ? 'chip-activa' : ''}`} onClick={() => setVista('lista')} aria-pressed={vista === 'lista'}>
+            Lista
+          </button>
+          <button className={`chip ${vista === 'calendario' ? 'chip-activa' : ''}`} onClick={() => setVista('calendario')} aria-pressed={vista === 'calendario'}>
+            Calendario
+          </button>
+        </div>
       </div>
+
+      {/* CA-7.8: agenda mensual con los días ocupados de la casa */}
+      {vista === 'calendario' && !cargando && (
+        <>
+          <div className="cal-leyenda">
+            <span><i style={{ background: 'var(--ok-050)' }} /> confirmada</span>
+            <span><i style={{ background: 'var(--warn-050)' }} /> pendiente</span>
+            <span>Sin registrar aún: crea la reserva y aparecerá aquí mismo.</span>
+          </div>
+          <Calendario
+            ocupadas={[]}
+            ariaLabel="Agenda de reservas del negocio"
+            desde=""
+            hasta=""
+            extra={(dia) => {
+              const rs = porDia.get(dia)
+              if (!rs) return null
+              return (
+                <>
+                  {rs.slice(0, 2).map((x, i) => (
+                    <span key={i} className={`cal-chip ${x.estado}`} title={`${x.habitacion?.nombre ?? ''} · ${x.estado} · ${x.cliente?.nombre_completo ?? ''}`}>
+                      {etiquetaCorta(x.habitacion?.nombre)}
+                    </span>
+                  ))}
+                  {rs.length > 2 && <span className="cal-mas">+{rs.length - 2} más</span>}
+                </>
+              )
+            }}
+          />
+          <p className="nota" style={{ marginTop: 14 }}>
+            Cada píldora es una reserva de esa habitación (el día de salida queda libre como llegada de la siguiente).
+            Para cambiar fechas o huéspedes, usa la vista Lista y el botón Ajustar.
+          </p>
+        </>
+      )}
 
       {cargando && <div className="skeleton" style={{ aspectRatio: 'auto', height: 420 }} />}
 
-      {!cargando && visibles.length === 0 && estado.tipo !== 'error' && (
+      {!cargando && vista === 'lista' && visibles.length === 0 && estado.tipo !== 'error' && (
         <p className="aviso-panel">No hay reservas con ese filtro todavía: cambia el estado o borra la búsqueda.</p>
       )}
 
+      {vista === 'lista' && (
       <div style={{ display: 'grid', gap: 14 }}>
         {visibles.map((r) => {
           const n = noches(r.fecha_entrada, r.fecha_salida)
           const precio = n * Number(r.habitacion?.precio_noche ?? 0)
           const abierta = editando === r.id
+          const wa = whatsappUrl(r)
+          const mail = emailUrl(r)
           return (
             <article key={r.id} className="card-reserva">
               <img src={imgHabitacion(r.habitacion_id)} alt="" aria-hidden="true" loading="lazy" />
@@ -195,6 +306,26 @@ export default function PanelAdmin({ onAvisar }) {
                 {!abierta && r.estado !== 'cancelada' && (
                   <button className="btn btn-ghost" onClick={() => cancelar(r)}>Cancelar</button>
                 )}
+                <a
+                  className="btn btn-ghost btn-msj"
+                  href={wa ?? '#'}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-disabled={!wa}
+                  title={wa ? 'Enviar mensaje por WhatsApp' : 'Este cliente no guarda todavía un teléfono en su perfil'}
+                  onClick={(e) => { if (!wa) e.preventDefault() }}
+                >
+                  WhatsApp
+                </a>
+                <a
+                  className="btn btn-ghost btn-msj"
+                  href={mail ?? '#'}
+                  aria-disabled={!mail}
+                  title={mail ? 'Enviar mensaje por email' : 'Este cliente no guarda todavía un email de contacto'}
+                  onClick={(e) => { if (!mail) e.preventDefault() }}
+                >
+                  Email
+                </a>
                 {r.estado === 'cancelada' && <span className="admin-bloqueada">libera la habitación</span>}
               </div>
 
@@ -247,6 +378,7 @@ export default function PanelAdmin({ onAvisar }) {
           )
         })}
       </div>
+      )}
     </section>
   )
 }

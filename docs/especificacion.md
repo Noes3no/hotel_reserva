@@ -61,6 +61,7 @@ Como **cliente autenticado**, quiero **elegir fechas futuras y una habitación, 
 - CA-4.4 El número de huéspedes no puede exceder la capacidad de la habitación.
 - CA-4.5 No se permiten reservas solapadas de la misma habitación en fechas que se cruzan.
 - CA-4.6 Toda reserva se registra con el `usuario_id` del titular autenticado: un cliente no puede reservar «a nombre de otro».
+- CA-4.7 Al elegir la habitación, el formulario muestra un **calendario de disponibilidad** de esa habitación (mes navegable): los días ya reservados o pasados se ven sombreados y no se pueden elegir; el cliente marca llegada y salida pulsando días libres. La ocupación sale de la función pública `ver_ocupaciones()` (SQL actualizado en `docs/esquema.sql`).
 
 ### HU-05 · Consultar mis reservas — Actor: Cliente
 Como **cliente**, quiero **ver el listado de mis reservas con su estado**, para recordar mi estancia.
@@ -89,6 +90,8 @@ Como **administrador**, quiero **ver todas las reservas, y confirmarlas, cancela
 - CA-7.4 El administrador puede **cancelar** cualquier reserva (libera la habitación).
 - CA-7.5 El administrador puede **posponer o adelantar** la estancia: PATCH de `fecha_entrada`/`fecha_salida`, con las mismas reglas de solape y futuro.
 - CA-7.6 El administrador puede **ajustar** el número de huéspedes (respeta la capacidad de la habitación).
+- CA-7.7 El administrador puede **escribir al cliente** con un mensaje preparado por **WhatsApp** (teléfono del perfil) o **email** (correo del perfil).
+- CA-7.8 El panel incluye un **calendario mensual**: cada día muestra las reservas de ese día con su habitación y estado, de modo que el propietario ve de un vistazo qué días están ocupados (agregar personas y cambiar fechas se hace desde el editor de ajuste ya definido).
 
 ### HU-08 · Gestionar el catálogo — Actor: Administrador
 Como **administrador**, quiero **crear, editar y desactivar habitaciones**, para mantener la oferta al día.
@@ -102,7 +105,7 @@ Como **administrador**, quiero **crear, editar y desactivar habitaciones**, para
 Como **visitante**, quiero **navegar una portada cálida y rural con buscador de fechas y catálogo visual de habitaciones**, para decidir si reservo la casa.
 
 **Criterios de aceptación**
-- CA-9.1 La portada muestra hero con buscador (destino, fechas ≥ hoy, huéspedes) y el catálogo como tarjetas con fotografía.
+- CA-9.1 La portada muestra el hero fotográfico con el nombre de la casa; el buscador (llegada ≥ hoy, salida, huéspedes) queda **debajo de la portada, centrado**, sin solaparse con la imagen.
 - CA-9.2 El buscador filtra el catálogo por capacidad (huéspedes) sin necesidad de sesión.
 - CA-9.3 El botón «Reservar» abre el formulario de reserva sin exigir sesión: la autenticación se exige como **último paso** (ver HU-10).
 - CA-9.4 Solo con sesión activa se ven «Mis reservas» y en ellas el estado (`pendiente`/`confirmada`/`cancelada`) con opción de cancelar.

@@ -7,10 +7,11 @@
 //   automáticamente con los datos guardados (CA-10.3).
 // Con sesión previa: el paso 2 se salta y la reserva se crea al continuar.
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import usarGoogleActivo from '../lib/usarGoogleActivo'
 import { hoyISO, noches, euros, imgHabitacion, guardarReservaPendiente, limpiarReservaPendiente } from '../lib/ayudas'
+import Calendario from './Calendario'
 
 export default function BookingModal({ sesion, habitacion, filtros, onConfirmada, cerrar }) {
   const hoy = hoyISO()
@@ -22,10 +23,55 @@ export default function BookingModal({ sesion, habitacion, filtros, onConfirmada
 
   const [paso, setPaso] = useState('datos') // datos | ultimo | exito
   const [desde, setDesde] = useState(filtros.desde || '')
-  const [hasta, setHasta] = useState(manana)
+  const [hasta, setHasta] = useState(filtros.desde ? manana : '')
   const [huespedes, setHuespedes] = useState(Math.min(2, habitacion.capacidad))
   const [error, setError] = useState('')
   const [enviando, setEnviando] = useState(false)
+  const [avisoCal, setAvisoCal] = useState('')
+
+  /* CA-4.7: disponibilidad real de ESTA habitación (función pública SQL) */
+  const [ocupadas, setOcupadas] = useState([])
+  const [dispAviso, setDispAviso] = useState('')
+
+  useEffect(() => {
+    let vivo = true
+    supabase.rpc('ver_ocupaciones').then(({ data, error }) => {
+      if (!vivo) return
+      if (error) {
+        setDispAviso(
+          'El calendario no pudo leer la disponibilidad: falta aplicar el bloque ' +
+          '«ACTUALIZACIÓN v3» de docs/esquema.sql en el SQL Editor. Igual las reglas se validan al confirmar.',
+        )
+        return
+      }
+      setOcupadas(data ?? [])
+    })
+    return () => { vivo = false }
+  }, [])
+
+  const ocupadasHab = useMemo(
+    () => ocupadas.filter((o) => o.habitacion_id === habitacion.id),
+    [ocupadas, habitacion.id],
+  )
+
+  /** ¿las noches [d1, d2) cruzan algún tramo ya reservado? (media-franja abierta) */
+  function solapa(d1, d2) {
+    if (!d1 || !d2 || d2 <= d1) return false
+    return ocupadasHab.some((o) => o.fecha_entrada < d2 && o.fecha_salida > d1)
+  }
+
+  /* Elección con clic: primer clic = llegada, segundo = salida (si es libre) */
+  function elegirDia(dia) {
+    setAvisoCal('')
+    if (!desde || (desde && hasta)) { setDesde(dia); setHasta(''); return }
+    if (dia <= desde) { setDesde(dia); setHasta(''); return }
+    if (solapa(desde, dia)) {
+      setAvisoCal('Entre esas fechas ya hay noches reservadas: elige otra salida.')
+      return
+    }
+    setHasta(dia)
+  }
+
 
   // Último paso: autenticación
   const [modoAuth, setModoAuth] = useState('registro') // registro | entrar
@@ -53,6 +99,7 @@ export default function BookingModal({ sesion, habitacion, filtros, onConfirmada
     if (!desde || !hasta) return 'Elige la fecha de llegada y de salida.'
     if (desde < hoy) return 'Queda prohibido reservar fechas del pasado: la llegada debe ser a partir de hoy.'
     if (hasta <= desde) return 'La salida debe ser posterior a la llegada.'
+    if (solapa(desde, hasta)) return 'Esas noches ya están reservadas: elige otras fechas en el calendario.'
     if (huespedes < 1 || huespedes > habitacion.capacidad) {
       return `La habitación ${habitacion.nombre} admite hasta ${habitacion.capacidad} huéspedes.`
     }
@@ -64,6 +111,7 @@ export default function BookingModal({ sesion, habitacion, filtros, onConfirmada
     e.preventDefault()
     setError('')
     setAvisoEmail('')
+    setAvisoCal('')
 
     const msg = validar()
     if (msg) return setError(msg)
@@ -162,41 +210,64 @@ export default function BookingModal({ sesion, habitacion, filtros, onConfirmada
 
           {paso !== 'exito' && (
             <form className="form-auth" onSubmit={continuar} noValidate>
-              <div className="fechas">
-                <div className="grupo">
-                  <label htmlFor="r-desde">Llegada</label>
-                  <input
-                    id="r-desde" type="date" min={hoy} value={desde} required
-                    onChange={(e) => {
-                      setDesde(e.target.value)
-                      if (hasta && hasta <= e.target.value) {
-                        const d = new Date(e.target.value)
-                        d.setDate(d.getDate() + 1)
-                        setHasta(d.toLocaleDateString('en-CA'))
-                      }
-                    }}
-                  />
-                </div>
-                <div className="grupo">
-                  <label htmlFor="r-hasta">Salida</label>
-                  <input
-                    id="r-hasta" type="date" min={desde || hoy} value={hasta} required
-                    onChange={(e) => setHasta(e.target.value)}
-                  />
+              <p className="nota">
+                Elige en el calendario tu llegada y tu salida (CA-4.7): los días grisés ya están reservados.
+              </p>
+
+              <div className="reserva-cal">
+                <Calendario
+                  ocupadas={ocupadasHab}
+                  habitacionId={habitacion.id}
+                  desde={desde}
+                  hasta={hasta}
+                  onDia={elegirDia}
+                  ariaLabel={`Calendario de disponibilidad de ${habitacion.nombre}`}
+                />
+
+                <div className="reserva-side">
+                  <div className="fechas">
+                    <div className="grupo">
+                      <label htmlFor="r-desde">Llegada</label>
+                      <input
+                        id="r-desde" type="date" min={hoy} value={desde} required
+                        onChange={(e) => {
+                          setDesde(e.target.value)
+                          if (hasta && hasta <= e.target.value) {
+                            const d = new Date(e.target.value)
+                            d.setDate(d.getDate() + 1)
+                            setHasta(d.toLocaleDateString('en-CA'))
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="grupo">
+                      <label htmlFor="r-hasta">Salida</label>
+                      <input
+                        id="r-hasta" type="date" min={desde || hoy} value={hasta} required
+                        onChange={(e) => setHasta(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grupo">
+                    <label htmlFor="r-huespedes">Huéspedes · máximo {habitacion.capacidad}</label>
+                    <input
+                      id="r-huespedes"
+                      type="number"
+                      min="1"
+                      max={habitacion.capacidad}
+                      value={huespedes}
+                      onChange={(e) => setHuespedes(Number(e.target.value))}
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="grupo">
-                <label htmlFor="r-huespedes">Huéspedes · máximo {habitacion.capacidad}</label>
-                <input
-                  id="r-huespedes"
-                  type="number"
-                  min="1"
-                  max={habitacion.capacidad}
-                  value={huespedes}
-                  onChange={(e) => setHuespedes(Number(e.target.value))}
-                />
-              </div>
+              {(avisoCal || dispAviso) && (
+                <p className={avisoCal ? 'error-msg' : 'nota'} role={avisoCal ? 'alert' : undefined}>
+                  {avisoCal || dispAviso}
+                </p>
+              )}
 
               {error && <p className="error-msg" role="alert">{error}</p>}
 

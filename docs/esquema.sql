@@ -319,3 +319,71 @@ on conflict (nombre) do nothing;
 --   3) Cliente: update/delete de la reserva de otro → 0 filas afectadas.
 --   4) Cliente: dos inserts que se solapan en la misma habitación → error 23P01.
 --   5) Administrador: puede ver y gestionar todas las reservas.
+\n-- ---------------------------------------------------------------------
+-- ACTUALIZACIÓN v3 · calendarios de disponibilidad + contacto del cliente
+-- Ejecutar este bloque completo en el SQL Editor de Supabase (es idempotente):
+--  1. Guarda en perfiles el email y el teléfono de contacto de cada cliente,
+--     para que el propietario pueda escribirle por email o WhatsApp (CA-7.7).
+--  2. Crea la función pública ver_ocupaciones() que alimenta los calendarios
+--     de disponibilidad (CA-4.7 pública y CA-7.8 del panel).
+-- ---------------------------------------------------------------------
+
+-- 1. contacto del cliente en perfiles (email para correo, teléfono para WhatsApp)
+alter table public.perfiles add column if not exists email    text;
+alter table public.perfiles add column if not exists telefono text;
+
+-- rellena el email de contacto con el de Auth para los perfiles ya creados
+update public.perfiles p
+   set email = u.email
+  from auth.users u
+ where p.email is null
+   and u.id = p.id;
+
+-- el trigger se vuelve a crear con la versión que guarda email y teléfono
+create or replace function public.crear_perfil_usuario()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.perfiles (id, nombre_completo, email, telefono)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data ->> 'nombre_completo', 'Cliente'),
+    new.email,
+    new.phone
+  )
+  on conflict (id) do nothing;
+
+  return new;
+end;
+$$;
+
+-- 2. ocupaciones para pintar los calendarios: devuelve los tramos reservados.
+-- El intervalo [fecha_entrada, fecha_salida) son las noches ocupadas; el día
+-- de salida queda libre como llegada de la reserva siguiente (EXCLUDE usa
+-- daterange igual que las reglas de negocio).
+-- security definer: el visitante anónimo necesita leer las ocupaciones para
+-- el calendario público, pero sigue SIN poder leer la tabla reservas (RLS).
+create or replace function public.ver_ocupaciones()
+returns table (
+  habitacion_id bigint,
+  fecha_entrada date,
+  fecha_salida  date,
+  estado        text
+)
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select r.habitacion_id, r.fecha_entrada, r.fecha_salida, r.estado
+    from public.reservas r
+   where r.estado <> 'cancelada'
+     and r.fecha_salida >= current_date;
+$$;
+
+grant execute on function public.ver_ocupaciones() to anon, authenticated;
+
+-- verificación rápida: select * from public.ver_ocupaciones() limit 5;
