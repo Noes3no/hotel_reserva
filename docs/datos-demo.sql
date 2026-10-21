@@ -14,6 +14,8 @@
 --      propietario (HU-07) y las agendas de calendario salen llenos.
 --
 -- Notas:
+--   · TODO EN UNO: no necesitas ejecutar actualizacion-v3.sql antes;
+--     la preparación de columnas y calendarios va incluida arriba.
 --   · Idempotente: borra antes los datos de demo y vuelve a crearlos.
 --   · Contraseña común de demo: LaSolana2027!
 --   · Las reglas de negocio se respetan: fechas futuras, capacidad,
@@ -21,6 +23,62 @@
 -- =====================================================================
 
 create extension if not exists pgcrypto; -- crypt() / gen_salt() para las contraseñas
+
+-- ---------------------------------------------------------------------
+-- 0. Preparación (antes iba en docs/actualizacion-v3.sql; incluida aquí
+--    para que ESTE guion baste solo). Crea las columnas de contacto de
+--    perfiles si faltan y rellena el email desde Auth. Idempotente.
+-- ---------------------------------------------------------------------
+alter table public.perfiles add column if not exists email    text;
+alter table public.perfiles add column if not exists telefono text;
+
+update public.perfiles p
+   set email = u.email
+  from auth.users u
+ where p.email is null
+   and u.id = p.id;
+
+-- trigger de alta con contacto, para los registros futuros
+create or replace function public.crear_perfil_usuario()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.perfiles (id, nombre_completo, email, telefono)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data ->> 'nombre_completo', 'Cliente'),
+    new.email,
+    new.phone
+  )
+  on conflict (id) do nothing;
+
+  return new;
+end;
+$$;
+
+-- función pública de ocupaciones: alimenta los calendarios (CA-4.7 y CA-7.8)
+create or replace function public.ver_ocupaciones()
+returns table (
+  habitacion_id bigint,
+  fecha_entrada date,
+  fecha_salida  date,
+  estado        text
+)
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select r.habitacion_id, r.fecha_entrada, r.fecha_salida, r.estado
+    from public.reservas r
+   where r.estado <> 'cancelada'
+     and r.fecha_salida >= current_date;
+$$;
+
+grant execute on function public.ver_ocupaciones() to anon, authenticated;
 
 -- ---------------------------------------------------------------------
 -- 1. Clientes demo (UUID fijos para poder referenciarlos abajo)
