@@ -95,6 +95,16 @@ Como **administrador**, quiero **crear, editar y desactivar habitaciones**, para
 - CA-8.2 Las habitaciones se desactivan (`activa = false`) en lugar de borrarse, para conservar el historial.
 - CA-8.3 Si se elimina una habitación se borran también sus reservas (FK en cascada); por eso se prefiere desactivar.
 
+### HU-09 · Portada pública con estética rural — Actores: visitante anónimo y Cliente
+Como **visitante**, quiero **navegar una portada cálida y rural con buscador de fechas y catálogo visual de habitaciones**, para decidir si reservo la casa.
+
+**Criterios de aceptación**
+- CA-9.1 La portada muestra hero con buscador (destino, fechas ≥ hoy, huéspedes) y el catálogo como tarjetas con fotografía.
+- CA-9.2 El buscador filtra el catálogo por capacidad (huéspedes) sin necesidad de sesión.
+- CA-9.3 El botón «Reservar» exige sesión: si no la hay, se muestra autenticación (Registro/Iniciar sesión) antes del formulario de reserva.
+- CA-9.4 Solo con sesión activa se ven «Mis reservas» y en ellas el estado (`pendiente`/`confirmada`/`cancelada`) con opción de cancelar.
+- CA-9.5 La dirección de la casa se toma como única («La Solana»); no hay catálogo de destinos múltiples.
+
 ## 3. Modelo de datos
 
 ### 3.1 Entidades
@@ -176,3 +186,17 @@ auth.users  ── 1:1 ──►  perfiles  ◄── N:1 ──  reservas  ─�
 - [ ] RLS aplicado y comprobado con actor anónimo, cliente y administrador.
 - [ ] Frontend consume la API mediante `proyecto-2/src/lib/supabase.js` usando solo la clave pública.
 - [ ] Historial versionado con commits semánticos y etiquetas `vX.Y.Z`.
+
+## 6. Identidad visual — Fuente: capturas de «img - web»
+
+Referencias auditadas en `img - web`: (a) tablero de casas rurales con piedra, madera, piscinas e hidromasajes; (b) home de Booking.com; (c) home de Airbnb. Diseño resultante: estructura de Airbnb (buscador central, tarjetas con foto, chips por capacidad) + calidez fotográfica rustic-campestre del tablero.
+
+| Elemento | Decisión |
+|---|---|
+| Marca | «La Solana» — casa rural única (logotipo tipográfico Fraunces + icono montaña) |
+| Paleta | Fondo crema `#FBF7F1`, tinta `#231A12`, terracota primario `#B8542F`, verde pino `#2F4A3A`, líneas cálidas `#ECE4D8` |
+| Tipografía | Fraunces (serif, títulos y logotipo) + Inter (sans, UI y datos); autoalojadas en `proyecto-2/public/fonts` |
+| Fotografía | 19 imágenes con licencia libre (Unsplash/Pexels) coherentes con el tablero: cabañas de madera, casas de campo, piscina de madera, bosque, valle, spa, desayuno. Origen en `proyecto-2/public/img/CREDITOS.txt` |
+| Componentes clave | Navbar sticky crema; hero full-bleed con buscador píldora; tarjetas 4:3 con hover suave; badges de estado de reserva (pendiente/confirmada/cancelada); modal de reserva y de autenticación |
+| Accesibilidad | Contraste AA, foco visible, `aria-live` en errores, etiquetas en todos los campos, navegación por teclado en modales (Escape/cierre con backdrop) |
+
