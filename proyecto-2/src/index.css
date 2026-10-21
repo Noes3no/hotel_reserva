@@ -1056,3 +1056,111 @@ h1, h2, h3 {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ============================================================
+   Panel de administración (HU-07)
+   ============================================================ */
+
+.admin-metricas {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.metrica {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metrica b {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1.15;
+}
+
+.metrica span {
+  color: var(--ink-2);
+  font-size: 0.82rem;
+}
+
+.metrica-ok b { color: var(--ok); }
+.metrica-ok { border-color: var(--ok-050); background: linear-gradient(0deg, #fff, var(--ok-050)); }
+.metrica-warn b { color: var(--warn); }
+.metrica-warn { border-color: var(--warn-050); background: linear-gradient(0deg, #fff, var(--warn-050)); }
+
+.admin-controles {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  border: 1px solid var(--line-2);
+  background: var(--panel);
+  color: var(--ink-2);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.chip:hover { border-color: var(--line-2); color: var(--ink); }
+
+.chip-activa {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+.admin-buscar {
+  flex: 1 1 220px;
+  max-width: 340px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--ink);
+  padding: 10px 14px;
+  font: inherit;
+}
+
+.admin-buscar:focus-visible {
+  outline: 2px solid var(--clay);
+  outline-offset: 1px;
+}
+
+.admin-cliente {
+  color: var(--ink-2);
+  font-weight: 500;
+}
+
+.admin-precio {
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-bloqueada {
+  color: var(--ink-3);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 760px) {
+  .admin-metricas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

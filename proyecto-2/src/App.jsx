@@ -12,6 +12,7 @@ import Experiencias from './components/Experiencias'
 import Habitaciones from './components/Habitaciones'
 import Entorno from './components/Entorno'
 import MisReservas from './components/MisReservas'
+import PanelAdmin from './components/PanelAdmin'
 import AuthModal from './components/AuthModal'
 import BookingModal from './components/BookingModal'
 import Footer from './components/Footer'
@@ -194,7 +195,7 @@ export default function App() {
 
   return (
     <>
-      <Navbar sesion={sesion} onSalir={salir} abrirAuth={abrirAuth} />
+      <Navbar sesion={sesion} esAdmin={sesion.perfil?.rol === 'administrador'} onSalir={salir} abrirAuth={abrirAuth} />
 
       <main>
         <Hero filtros={filtros} setFiltros={setFiltros} />
@@ -214,6 +215,9 @@ export default function App() {
             onCancelar={cancelarReserva}
           />
         )}
+
+        {/* HU-07: el rol lo decide la base de datos; sin rol admin, ni siquiera se monta */}
+        {sesion.perfil?.rol === 'administrador' && <PanelAdmin onAvisar={avisar} />}
       </main>
 
       <Footer />

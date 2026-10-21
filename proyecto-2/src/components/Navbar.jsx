@@ -2,7 +2,7 @@
 
 import { inicial } from '../lib/ayudas'
 
-export default function Navbar({ sesion, onSalir, abrirAuth }) {
+export default function Navbar({ sesion, esAdmin, onSalir, abrirAuth }) {
   return (
     <header className="nav">
       <div className="nav-inner">
@@ -20,6 +20,7 @@ export default function Navbar({ sesion, onSalir, abrirAuth }) {
             <li><a href="#experiencias">Experiencias</a></li>
             <li><a href="#entorno">El entorno</a></li>
             {sesion.user && <li><a href="#mis-reservas">Mis reservas</a></li>}
+            {esAdmin && <li><a href="#panel-admin">Panel admin</a></li>}
           </ul>
         </nav>
 
