@@ -57,12 +57,27 @@ npm run dev
 
 | Misión | Contenido | Estado |
 |---|---|---|
-| 1 · Documentación | `docs/especificacion.md` (8 HU + criterios + modelo de datos) | ✅ |
-| 2 · Base de datos | `docs/esquema.sql` (tablas + RLS + triggers) | ✅ pendiente de ejecutar en tu proyecto de Supabase |
+| 1 · Documentación | `docs/especificacion.md` (10 HU + criterios + modelo de datos) | ✅ |
+| 2 · Base de datos | `docs/esquema.sql` (tablas + RLS + triggers) | ✅ aplicado en Supabase |
 | 3 · Frontend | Vite + React + `src/lib/supabase.js` + `@supabase/supabase-js` | ✅ |
 | 4 · Entorno | `.env.local` + exclusión en Git | ✅ |
 | 5 · Validación API | `docs/pruebas-api.http` (con equivalentes cURL) | ⏳ ejecuta con tus credenciales reales |
-| 6 · Versiones | Commit semántico + tag `v0.1.0` | ✅ push pendiente de configurar tu remoto |
+| 6 · Versiones | Commit semántico + tag `vX.Y.Z` | ✅ |
+
+## Despliegue (Vercel)
+
+La web está desplegada en producción: **https://hotelreserva.vercel.app**
+
+```bash
+cd proyecto-2
+vercel link --yes --project hotel_reserva   # primera vez
+vercel --prod                               # despliegue manual
+```
+
+- Repositorio conectado: cada `git push` a `main` despliega en producción automáticamente.
+- **Root Directory** del proyecto en Vercel: `proyecto-2` (¡no la raíz del repo!).
+- Variables de entorno en Vercel (Production + Preview): `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY`.
+- Recuerda añadir `https://hotelreserva.vercel.app` a **Supabase → Authentication → URL Configuration → Redirect URLs**.
 
 ## Validación de la API REST (Misión 5)
 
