@@ -116,20 +116,6 @@ update public.perfiles set telefono = '+34600000005',
  where id = '55555555-5555-4555-8555-555555555555';
 
 -- ---------------------------------------------------------------------
--- 2. Reservas de los clientes (nov 2026 → agosto 2027)
---    Se referencian habitaciones por nombre (más robusto que por id).
---    Sin solapes por habitación: lo valida la restricción EXCLUDE.
--- ---------------------------------------------------------------------
-delete from public.reservas
-where usuario_id in (
-  '11111111-1111-4111-8111-111111111111',
-  '22222222-2222-4222-8222-222222222222',
-  '33333333-3333-4333-8333-333333333333',
-  '44444444-4444-4444-8444-444444444444',
-  '55555555-5555-4555-8555-555555555555'
-);
-
--- ---------------------------------------------------------------------
 -- 2. Reservas de los clientes (temporada de demo: nov 2026 → agosto 2027)
 --    32 estancias repartidas por las 10 habitaciones y todos los meses,
 --    con los tres estados (pendiente / confirmada / cancelada).
@@ -202,7 +188,7 @@ select '55555555-5555-4555-8555-555555555555', h.id, '2027-02-19', '2027-02-22',
 union all
 -- María · esquí de fondo (pendiente)
 select '11111111-1111-4111-8111-111111111111', h.id, '2027-02-26', '2027-02-28', least(2, h.capacidad), 'pendiente'
-  from public.habitaciones h where h.nombre = 'Ático con vistas de la plaza de Chinchón'
+  from public.habitaciones h where h.nombre ilike '%Chinch%'
 union all
 -- Laura · primavera temprana (pendiente, individual)
 select '33333333-3333-4333-8333-333333333333', h.id, '2027-03-08', '2027-03-10', least(1, h.capacidad), 'pendiente'
@@ -222,7 +208,7 @@ select '33333333-3333-4333-8333-333333333333', h.id, '2027-03-26', '2027-03-31',
 union all
 -- Laura · primicia de abril (confirmada)
 select '33333333-3333-4333-8333-333333333333', h.id, '2027-04-02', '2027-04-05', least(3, h.capacidad), 'confirmada'
-  from public.habitaciones h where h.nombre = 'Ático con vistas de la plaza de Chinchón'
+  from public.habitaciones h where h.nombre ilike '%Chinch%'
 union all
 -- Carlos · puente de abril (pendiente)
 select '44444444-4444-4444-8444-444444444444', h.id, '2027-04-09', '2027-04-12', least(3, h.capacidad), 'pendiente'
@@ -246,7 +232,7 @@ select '44444444-4444-4444-8444-444444444444', h.id, '2027-06-18', '2027-06-21',
 union all
 -- Juan · fin de curso (pendiente)
 select '22222222-2222-4222-8222-222222222222', h.id, '2027-06-25', '2027-06-28', least(3, h.capacidad), 'pendiente'
-  from public.habitaciones h where h.nombre = 'Ático con vistas de la plaza de Chinchón'
+  from public.habitaciones h where h.nombre ilike '%Chinch%'
 union all
 -- Elena · verano histórico (confirmada)
 select '55555555-5555-4555-8555-555555555555', h.id, '2027-07-02', '2027-07-06', least(3, h.capacidad), 'confirmada'
@@ -262,7 +248,7 @@ select '44444444-4444-4444-8444-444444444444', h.id, '2027-07-14', '2027-07-19',
 union all
 -- Elena · principios de agosto (confirmada)
 select '55555555-5555-4555-8555-555555555555', h.id, '2027-08-01', '2027-08-05', least(3, h.capacidad), 'confirmada'
-  from public.habitaciones h where h.nombre = 'Ático con vistas de la plaza de Chinchón'
+  from public.habitaciones h where h.nombre ilike '%Chinch%'
 union all
 -- Carlos · agosto de individual (pendiente)
 select '44444444-4444-4444-8444-444444444444', h.id, '2027-08-02', '2027-08-04', least(1, h.capacidad), 'pendiente'
@@ -288,6 +274,19 @@ select '55555555-5555-4555-8555-555555555555', h.id, '2027-08-20', '2027-08-30',
 -- ---------------------------------------------------------------------
 -- 4. Verificación (ejecútala tras el script)
 -- ---------------------------------------------------------------------
+-- a) Total y rango: esperamos 32 reservas, la última salida 2027-08-30
+select count(*) as reservas_demo, min(fecha_entrada) as primera_entrada,
+       max(fecha_salida) as ultima_salida
+  from public.reservas
+ where usuario_id in (
+   '11111111-1111-4111-8111-111111111111',
+   '22222222-2222-4222-8222-222222222222',
+   '33333333-3333-4333-8333-333333333333',
+   '44444444-4444-4444-8444-444444444444',
+   '55555555-5555-4555-8555-555555555555'
+ );
+
+-- b) Detalle completo (guarda captura si algo falla)
 select p.nombre_completo, u.email, h.nombre as habitacion,
        r.fecha_entrada, r.fecha_salida, r.num_huespedes, r.estado
   from public.reservas r
