@@ -38,13 +38,26 @@ export default function PanelAdmin({ onAvisar }) {
   const [vista, setVista] = useState('lista') // lista | calendario
   const hoy = hoyISO()
 
-  /* Todas las reservas con cliente y habitación incrustados (SELECT + JOIN) */
+  /* Todas las reservas con cliente y habitación incrustados (SELECT + JOIN).
+     Si la base de datos todavía no tiene la actualización v3 (columnas
+     email/telefono de perfiles), se reintenta sin ellas: el panel no se
+     rompe y los botones de mensaje quedan desactivados hasta aplicar v3. */
   const cargar = useCallback(async () => {
     setCargando(true)
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('reservas')
       .select('*, habitacion:habitaciones(id, nombre, precio_noche, capacidad), cliente:perfiles(nombre_completo, email, telefono)')
       .order('fecha_entrada', { ascending: true })
+
+    if (error && /does not exist/i.test(error.message)) {
+      const sin = await supabase
+        .from('reservas')
+        .select('*, habitacion:habitaciones(id, nombre, precio_noche, capacidad), cliente:perfiles(nombre_completo)')
+        .order('fecha_entrada', { ascending: true })
+      data = sin.data
+      error = sin.error
+    }
+
     setCargando(false)
     if (error) {
       setEstado({ tipo: 'error', mensaje: 'No se pudieron leer las reservas: ' + error.message })
