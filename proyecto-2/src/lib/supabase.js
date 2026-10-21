@@ -20,3 +20,6 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseKey)
+
+/** URL del proyecto (pública, útil para endpoints abiertos como /auth/v1/settings). */
+export const SUPABASE_URL = String(supabaseUrl).replace(/\/$/, '')
