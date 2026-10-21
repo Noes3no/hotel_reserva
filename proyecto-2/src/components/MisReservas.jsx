@@ -6,7 +6,7 @@ const ESTADOS = ['pendiente', 'confirmada', 'cancelada']
 
 export default function MisReservas({ reservas, estado, cargando, onCancelar }) {
   return (
-    <section className="seccion" id="mis-reservas" data-tinta="claro" data-reveal>
+    <section className="seccion" id="mis-reservas" data-tinta="oscuro" data-reveal>
       <div className="cabecera-seccion">
         <h2>Mis reservas</h2>
         <p>Solo tú las ves (RLS). Puedes cancelarlas mientras no estén canceladas.</p>

@@ -13,7 +13,7 @@ const VISTAS_BANDA = [
 
 export default function Habitaciones({ habitaciones, estadoCat, filtros, onReservar }) {
   return (
-    <section className="seccion" id="habitaciones" data-tinta="claro" data-reveal>
+    <section className="seccion" id="habitaciones" data-tinta="oscuro" data-reveal>
       <div className="cabecera-seccion">
         <h2>Las habitaciones</h2>
         <p>

@@ -80,12 +80,15 @@ Como **cliente**, quiero **cambiar fechas o huéspedes, o cancelar mi reserva**,
 - CA-6.4 Una reserva cancelada queda bloqueada para su edición posterior.
 
 ### HU-07 · Gestionar todas las reservas — Actor: Administrador
-Como **administrador**, quiero **ver todas las reservas y confirmarlas o cancelarlas**, para organizar la ocupación del negocio.
+Como **administrador**, quiero **ver todas las reservas, y confirmarlas, cancelarlas, posponerlas o ajustarlas**, para organizar la ocupación del negocio.
 
 **Criterios de aceptación**
 - CA-7.1 El administrador ve y opera sobre las reservas de todos los clientes.
 - CA-7.2 Solo el rol `administrador` obtiene este acceso; el resto de usuarios sigue limitado a lo suyo.
 - CA-7.3 Toda modificación respeta las mismas reglas de negocio (fechas, solapes, capacidad).
+- CA-7.4 El administrador puede **cancelar** cualquier reserva (libera la habitación).
+- CA-7.5 El administrador puede **posponer o adelantar** la estancia: PATCH de `fecha_entrada`/`fecha_salida`, con las mismas reglas de solape y futuro.
+- CA-7.6 El administrador puede **ajustar** el número de huéspedes (respeta la capacidad de la habitación).
 
 ### HU-08 · Gestionar el catálogo — Actor: Administrador
 Como **administrador**, quiero **crear, editar y desactivar habitaciones**, para mantener la oferta al día.
@@ -208,10 +211,10 @@ RLS visible al cliente) se conserva íntegra en los criterios de HU-03…HU-07.
 | Elemento | Decisión |
 |---|---|
 | Marca | «La Solana» — casa rural única (logotipo tipográfico Fraunces + icono montaña) |
-| Paleta | Negro cálido `#0C0A08` (fondo), panel `#181512`, papel `#F4EAD9`, oro `#C9A45A` (único acento: acción), tinta `#FAF6EF`/mate `#B9B0A4`; sin gradientes ni sombras en reposo — jerarquía por escalas de tono |
+| Paleta | **Fondo blanco `#FFFFFF`** con tinta profunda `#1E2923` (contraste AA sobre blanco), verde natural `#3F6B4F` como único acento (acción), piedra suave `#F4F2EE` en paneles, oros `#C9A45A` reservados a detalles; sin gradientes ni sombras en reposo — jerarquía por tonos cercanos al blanco |
 | Tipografía | Fraunces (títulos, peso 550; nombre de la portada a 12.5vw) + Inter (texto 17px, notas 13.5px); autoalojadas en `proyecto-2/public/fonts` |
 | Fotografía | 21 imágenes con licencia libre (Unsplash/Pexels) del mundo de la casa: cabañas, piedra, piscina de madera, bosque, valle, spa, desayuno. Origen en `proyecto-2/public/img/CREDITOS.txt` |
-| Composición | Portada película (marco de papel 10px, 5 tonos navegacionales); habitaciones = banda desigual + filas alternadas; experiencias = foto ancha + tile de color + datos; entorno = fila arrastrable; pie = «reverso de la postal» festoneado |
+| Composición | Portada película (marco de papel 10px, 5 tonos navegacionales); habitaciones = banda desigual + filas alternadas; experiencias = foto ancha + tile de color + datos; entorno = fila arrastrable; pie = «reverso de la postal» festoneado; **formas redondeadas (16/12px, botones píldora)**, adaptación móvil a 390px |
 | Componentes clave | Navbar mástil con tinta que cambia por capítulo (firma); buscador compacto (CA-9.1); reserva en dos pasos (datos → cuenta por email o Google, HU-10); modales modulados; panel admin HU-07 |
 | Movimiento | Deriva lenta en la foto de portada + entradas por capítulo (una vez, 24px, stagger); siempre reducible con `prefers-reduced-motion` |
 | Accesibilidad | Contraste AA (tinta mate `#B9B0A4` reservada a texto secundario ≥13px), foco visible, `aria-live` en errores, etiquetas en todos los campos, navegación por teclado en modales (Escape/cierre con backdrop) |

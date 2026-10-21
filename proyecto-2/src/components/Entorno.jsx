@@ -3,7 +3,7 @@
 
 export default function Entorno() {
   return (
-    <section className="seccion" id="entorno" data-tinta="claro" data-reveal>
+    <section className="seccion" id="entorno" data-tinta="oscuro" data-reveal>
       <div className="galeria-cabecera">
         <h2>El entorno</h2>
         <span>Siete vistas · arrastra para recorrerlo</span>
@@ -47,8 +47,8 @@ export default function Entorno() {
 
       <p className="entorno-texto">
         Bosques de rebollo, ríos lentos y pueblos de pizarra teñidos de ocre. La sierra se recorre
-        a pie: desde la puerta salen tres senderos — al mirador del valle, al pantano de Robla y
-        al escondrijo de enebros — y el invierno trae esquí de fondo a los puertos.
+        a pie: desde la puerta salen tres senderos, hacia el mirador del valle, el pantano de Robla
+        y el escondrijo de enebros, y el invierno trae esquí de fondo a los puertos.
       </p>
     </section>
   )

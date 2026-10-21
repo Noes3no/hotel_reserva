@@ -13,7 +13,7 @@ export default function Hero({ filtros, setFiltros }) {
   }
 
   return (
-    <section className="hero" id="inicio" data-tinta="claro" data-reveal>
+    <section className="hero" id="inicio" data-tinta="claro">
       <div className="hero_panel">
         <div className="hero_foto">
           <div className="hero_foto_deriva" aria-hidden="true" />

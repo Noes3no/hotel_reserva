@@ -3,7 +3,7 @@
 
 export default function Experiencias() {
   return (
-    <section className="seccion" id="experiencias" data-tinta="claro" data-reveal>
+    <section className="seccion" id="experiencias" data-tinta="oscuro" data-reveal>
       <div className="cabecera-seccion">
         <h2>Días en la casa</h2>
         <p>Sin prisa, sin ruido: los pequeños rituales son la estancia.</p>
