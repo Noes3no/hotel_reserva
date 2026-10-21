@@ -1,95 +1,101 @@
-// Hero a pantalla completa con buscador tipo Airbnb: destino, fechas y huéspedes.
+// Portada «place-carries-it»: una sola vista del valle hace la venta.
+// El nombre pega al borde inferior como un rótulo de film; el buscador
+// (CA-9.1: fechas ≥ hoy + huéspedes) se mantiene compacto, arriba a la izquierda.
+// La columna de la derecha son cinco tonos de la casa que enlazan las secciones.
 
 import { hoyISO } from '../lib/ayudas'
 
 export default function Hero({ filtros, setFiltros }) {
   const hoy = hoyISO()
 
-  function set(campo, valor) {
+  function setF(campo, valor) {
     setFiltros((f) => ({ ...f, [campo]: valor }))
   }
 
   return (
-    <section className="hero" id="inicio">
-      <div className="hero_foto" role="img" aria-label="Casa de madera encendida al anochecer, rodeada de vegetación" />
-      <div className="hero_velo" aria-hidden="true" />
+    <section className="hero" id="inicio" data-tinta="claro" data-reveal>
+      <div className="hero_panel">
+        <div className="hero_foto">
+          <div className="hero_foto_deriva" aria-hidden="true" />
 
-      <div className="hero-inner">
-        <span className="eyebrow" style={{ color: '#f4b28a' }}>Casa rural · Sierra del Aguilar</span>
-        <h1 className="hero_titulo">Despiertas entre niebla, cenas bajo tu estrella.</h1>
-        <p className="hero_lema">
-          Piedra de siglos, una piscina de madera y la mejor chimenea del valle.
-          La casa entera es tuya y tus fechas se reservan desde hoy.
-        </p>
+          <div className="hero_contenido">
+            <div className="hero_pares">
+              <span>Casa rural única · desde 1926</span>
+              <span>Sierra del Aguilar · Burgos</span>
+            </div>
 
-        <form
-          className="buscador"
-          aria-label="Buscar disponibilidad"
-          onSubmit={(e) => { e.preventDefault(); document.getElementById('habitaciones')?.scrollIntoView({ behavior: 'smooth' }) }}
-        >
-          <div className="buscador_campo">
-            <label htmlFor="b-destino">Destino</label>
-            <input id="b-destino" placeholder="La Solana, Sierra del Aguilar" disabled />
-          </div>
-
-          <div className="buscador_campo">
-            <label htmlFor="b-desde">Llegada</label>
-            <input
-              id="b-desde"
-              type="date"
-              min={hoy}
-              value={filtros.desde ?? ''}
-              onChange={(e) => {
-                const v = e.target.value
-                setFiltros((f) => ({
-                  ...f,
-                  desde: v,
-                  // la salida no puede quedar antes que la llegada
-                  hasta: f.hasta && v && f.hasta <= v ? '' : f.hasta,
-                }))
-              }}
-            />
-          </div>
-
-          <div className="buscador_campo">
-            <label htmlFor="b-hasta">Salida</label>
-            <input
-              id="b-hasta"
-              type="date"
-              min={filtros.desde || hoy}
-              value={filtros.hasta ?? ''}
-              onChange={(e) => set('hasta', e.target.value)}
-            />
-          </div>
-
-          <div className="buscador_campo">
-            <label htmlFor="b-huespedes">Huéspedes</label>
-            <select
-              id="b-huespedes"
-              value={filtros.huespedes ?? ''}
-              onChange={(e) => set('huespedes', e.target.value === '' ? '' : Number(e.target.value))}
+            <form
+              className="buscador"
+              aria-label="Elegir fechas y huéspedes"
+              onSubmit={(e) => { e.preventDefault(); document.getElementById('habitaciones')?.scrollIntoView({ behavior: 'smooth' }) }}
             >
-              <option value="">Cualquiera</option>
-              {[2, 3, 4, 5, 6, 8].map((n) => <option key={n} value={n}>{n} huéspedes</option>)}
-            </select>
-          </div>
+              <div className="buscador_campo">
+                <label htmlFor="b-desde">Llegada</label>
+                <input
+                  id="b-desde"
+                  type="date"
+                  min={hoy}
+                  value={filtros.desde ?? ''}
+                  onChange={(e) => {
+                    const v = e.target.value
+                    setFiltros((f) => ({
+                      ...f,
+                      desde: v,
+                      // la salida no puede quedar antes que la llegada
+                      hasta: f.hasta && v && f.hasta <= v ? '' : f.hasta,
+                    }))
+                  }}
+                />
+              </div>
 
-          <div className="buscador_botones">
-            <button className="btn btn-buscar" type="submit" aria-label="Buscar habitaciones">
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
-                <circle cx="11" cy="11" r="7" />
-                <path d="M21 21l-4.5-4.5" />
-              </svg>
-            </button>
-          </div>
-        </form>
+              <div className="buscador_campo">
+                <label htmlFor="b-hasta">Salida</label>
+                <input
+                  id="b-hasta"
+                  type="date"
+                  min={filtros.desde || hoy}
+                  value={filtros.hasta ?? ''}
+                  onChange={(e) => setF('hasta', e.target.value)}
+                />
+              </div>
 
-        <div className="hero_chips">
-          <span className="chip-opaca">★ 4,9 · 312 opiniones</span>
-          <span className="chip-opaca">⚡ Piscina con hidromasaje</span>
-          <span className="chip-opaca">🔥 Chimenea y leña incluida</span>
-          <span className="chip-opaca">🍞 Desayunos de la casa</span>
+              <div className="buscador_campo">
+                <label htmlFor="b-huespedes">Huéspedes</label>
+                <select
+                  id="b-huespedes"
+                  value={filtros.huespedes ?? ''}
+                  onChange={(e) => setF('huespedes', e.target.value === '' ? '' : Number(e.target.value))}
+                >
+                  <option value="">Cualquiera</option>
+                  {[2, 3, 4, 5, 6, 8].map((n) => <option key={n} value={n}>{n} huéspedes</option>)}
+                </select>
+              </div>
+
+              <div className="buscador_botones">
+                <button className="btn-buscar" type="submit" aria-label="Ver habitaciones disponibles">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="M21 21l-4.5-4.5" />
+                  </svg>
+                </button>
+              </div>
+            </form>
+
+            <p className="hero_lema">
+              Piedra caliente, piscina de madera y la mejor chimenea del valle. La casa entera es tuya.
+            </p>
+
+            <h1 className="hero_nombre">La Solana</h1>
+          </div>
         </div>
+
+        <nav className="hero_nav" aria-label="Secciones de la casa">
+          <a className="t-1" href="#habitaciones">Habitaciones</a>
+          <a className="t-2" href="#experiencias">Días en la casa</a>
+          <a className="t-3" href="#entorno">El entorno</a>
+          <a className="t-4" href="#mis-reservas">Tu estancia</a>
+          <a className="t-5" href="#habitaciones">Reservar</a>
+        </nav>
       </div>
     </section>
   )

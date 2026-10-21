@@ -77,7 +77,7 @@ export default function AuthModal({ pane, setPane, razon = '', cerrar, avisar })
       >
         <div className="modal-top">
           <h2 id="auth-titulo">{pane === 'registro' ? 'Crea tu cuenta' : 'Bienvenido de nuevo'}</h2>
-          <button className="btn-x" onClick={cerrar} aria-label="Cerrar">✕</button>
+          <button className="btn-x" onClick={cerrar} aria-label="Cerrar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M5 5 19 19M19 5 5 19" /></svg></button>
         </div>
 
         <div className="auth-tabs" role="group" aria-label="Alternar entre registro y inicio de sesión">

@@ -197,16 +197,22 @@ auth.users  ── 1:1 ──►  perfiles  ◄── N:1 ──  reservas  ─�
 - [ ] Frontend consume la API mediante `proyecto-2/src/lib/supabase.js` usando solo la clave pública.
 - [ ] Historial versionado con commits semánticos y etiquetas `vX.Y.Z`.
 
-## 6. Identidad visual — Fuente: capturas de «img - web»
+## 6. Identidad visual — v2 «place-carries-it» (taste skill, semilla 805551368)
 
-Referencias auditadas en `img - web`: (a) tablero de casas rurales con piedra, madera, piscinas e hidromasajes; (b) home de Booking.com; (c) home de Airbnb. Diseño resultante: estructura de Airbnb (buscador central, tarjetas con foto, chips por capacidad) + calidez fotográfica rustic-campestre del tablero.
+Rediseño 2026-10-21, contratado sobre la auditoría real de la página v1 (lint + inspección en navegador:
+35 hallazgos). La idea que ordena la página: **la vista del valle es el argumento** — el nombre de la casa
+se pega al borde inferior de la vista como un rótulo de film, y la fotografía lleva el color; la interfaz
+va en negro cálido y oro, a un paso atrás. Estructura v1 (buscador, catálogo con reserva en dos pasos,
+RLS visible al cliente) se conserva íntegra en los criterios de HU-03…HU-07.
 
 | Elemento | Decisión |
 |---|---|
 | Marca | «La Solana» — casa rural única (logotipo tipográfico Fraunces + icono montaña) |
-| Paleta | Fondo crema `#FBF7F1`, tinta `#231A12`, terracota primario `#B8542F`, verde pino `#2F4A3A`, líneas cálidas `#ECE4D8` |
-| Tipografía | Fraunces (serif, títulos y logotipo) + Inter (sans, UI y datos); autoalojadas en `proyecto-2/public/fonts` |
-| Fotografía | 19 imágenes con licencia libre (Unsplash/Pexels) coherentes con el tablero: cabañas de madera, casas de campo, piscina de madera, bosque, valle, spa, desayuno. Origen en `proyecto-2/public/img/CREDITOS.txt` |
-| Componentes clave | Navbar sticky crema; hero full-bleed con buscador píldora; tarjetas 4:3 con hover suave; badges de estado de reserva (pendiente/confirmada/cancelada); modal de reserva en dos pasos (datos → último paso: cuenta por email o Google); modal de autenticación |
-| Accesibilidad | Contraste AA, foco visible, `aria-live` en errores, etiquetas en todos los campos, navegación por teclado en modales (Escape/cierre con backdrop) |
+| Paleta | Negro cálido `#0C0A08` (fondo), panel `#181512`, papel `#F4EAD9`, oro `#C9A45A` (único acento: acción), tinta `#FAF6EF`/mate `#B9B0A4`; sin gradientes ni sombras en reposo — jerarquía por escalas de tono |
+| Tipografía | Fraunces (títulos, peso 550; nombre de la portada a 12.5vw) + Inter (texto 17px, notas 13.5px); autoalojadas en `proyecto-2/public/fonts` |
+| Fotografía | 21 imágenes con licencia libre (Unsplash/Pexels) del mundo de la casa: cabañas, piedra, piscina de madera, bosque, valle, spa, desayuno. Origen en `proyecto-2/public/img/CREDITOS.txt` |
+| Composición | Portada película (marco de papel 10px, 5 tonos navegacionales); habitaciones = banda desigual + filas alternadas; experiencias = foto ancha + tile de color + datos; entorno = fila arrastrable; pie = «reverso de la postal» festoneado |
+| Componentes clave | Navbar mástil con tinta que cambia por capítulo (firma); buscador compacto (CA-9.1); reserva en dos pasos (datos → cuenta por email o Google, HU-10); modales modulados; panel admin HU-07 |
+| Movimiento | Deriva lenta en la foto de portada + entradas por capítulo (una vez, 24px, stagger); siempre reducible con `prefers-reduced-motion` |
+| Accesibilidad | Contraste AA (tinta mate `#B9B0A4` reservada a texto secundario ≥13px), foco visible, `aria-live` en errores, etiquetas en todos los campos, navegación por teclado en modales (Escape/cierre con backdrop) |
 

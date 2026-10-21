@@ -29,3 +29,6 @@ Thumbs.db
 
 .vercel
 .env*
+
+# auditorias locales del skill de diseno
+.taste-skill/

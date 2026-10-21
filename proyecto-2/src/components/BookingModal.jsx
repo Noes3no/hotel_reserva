@@ -156,7 +156,7 @@ export default function BookingModal({ sesion, habitacion, filtros, onConfirmada
                 <small> / noche</small>
               </span>
             </div>
-            <button className="btn-x" onClick={cerrar} aria-label="Cerrar">✕</button>
+            <button className="btn-x" onClick={cerrar} aria-label="Cerrar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M5 5 19 19M19 5 5 19" /></svg></button>
           </div>
 
           {paso !== 'exito' && (
@@ -229,7 +229,7 @@ export default function BookingModal({ sesion, habitacion, filtros, onConfirmada
 
           {paso === 'exito' && (
             <div className="exito">
-              <p className="exito-icono" aria-hidden="true">✓</p>
+              <p className="exito-icono" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12.5 10 18 20 6" /></svg></p>
               <h3>¡Reserva creada, {sesion.perfil?.nombre_completo ?? 'viajero'}!</h3>
               <p className="nota">
                 {habitacion.nombre} · {desde} → {hasta} · {huespedes} huéspedes · {euros(total)}.

@@ -74,16 +74,13 @@ export default function PanelAdmin({ onAvisar }) {
   }, [reservas])
 
   return (
-    <section className="seccion" id="panel-admin">
+    <section className="seccion" id="panel-admin" data-tinta="claro" data-reveal>
       <div className="cabecera-seccion">
-        <div>
-          <span className="eyebrow">HU-07 · solo visible al rol «administrador»</span>
-          <h2>Panel de reservas del negocio</h2>
-          <p>
-            Todas las reservas de todos los clientes (RLS con <code>es_administrador()</code>). Confirma entradas o
-            cancela liberando la habitación; el resto de reglas las sigue garantizando la base de datos.
-          </p>
-        </div>
+        <h2>Panel de reservas del negocio</h2>
+        <p>
+          Todas las reservas de todos los clientes (HU-07, rol «administrador» vía RLS). Confirma
+          entradas o cancela liberando la habitación; el resto de reglas las sigue garantizando la base de datos.
+        </p>
       </div>
 
       <div className="admin-metricas">

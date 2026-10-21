@@ -1,0 +1,28 @@
+[
+ {
+  "file": "proyecto-2/public/video/niebla-bosque.webm",
+  "media": "video",
+  "poster": "proyecto-2/public/video/niebla-bosque-poster.jpg",
+  "ref": "commons:149709041",
+  "title": "Foggy day of hyrcanian forest of iran",
+  "creator": "Reza Rafizadeh",
+  "creatorUrl": null,
+  "date": "2024-02-24",
+  "license": "CC BY 3.0",
+  "licenseCode": "by",
+  "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+  "creditRequired": true,
+  "page": "https://commons.wikimedia.org/wiki/File:Foggy_day_of_hyrcanian_forest_of_iran.webm",
+  "via": "Wikimedia Commons",
+  "video": "https://upload.wikimedia.org/wikipedia/commons/transcoded/f/f3/Foggy_day_of_hyrcanian_forest_of_iran.webm/Foggy_day_of_hyrcanian_forest_of_iran.webm.480p.vp9.webm",
+  "width": 854,
+  "height": 480,
+  "duration": 111.8,
+  "bytes": 13723526,
+  "credit": "\"Foggy day of hyrcanian forest of iran\" by Reza Rafizadeh, CC BY 3.0, via Wikimedia Commons",
+  "notes": [
+   "Long (1:52): a loop on a page wants 5 to 20 seconds. Prefer a shorter clip, or trim one with ffmpeg if it is installed."
+  ],
+  "saved": "2026-10-21T18:27:20.276Z"
+ }
+]

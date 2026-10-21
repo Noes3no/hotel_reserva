@@ -6,13 +6,10 @@ const ESTADOS = ['pendiente', 'confirmada', 'cancelada']
 
 export default function MisReservas({ reservas, estado, cargando, onCancelar }) {
   return (
-    <section className="seccion" id="mis-reservas">
+    <section className="seccion" id="mis-reservas" data-tinta="claro" data-reveal>
       <div className="cabecera-seccion">
-        <div>
-          <span className="eyebrow">Solo tú las ves (RLS)</span>
-          <h2>Mis reservas</h2>
-          <p>La consulta devuelve únicamente filas cuyo titular eres tú. Puedes cancelarlas mientras no estén canceladas.</p>
-        </div>
+        <h2>Mis reservas</h2>
+        <p>Solo tú las ves (RLS). Puedes cancelarlas mientras no estén canceladas.</p>
       </div>
 
       {estado.tipo === 'error' && <p className="aviso-panel error" role="alert">{estado.mensaje}</p>}

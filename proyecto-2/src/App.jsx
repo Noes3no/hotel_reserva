@@ -31,6 +31,61 @@ export default function App() {
   const [cargandoReservas, setCargandoReservas] = useState(false)
   const [toast, setToast] = useState('')
 
+  /* ---------- Firma «color by chapter»: la tinta del mástil cambia con el capítulo ---------- */
+  useEffect(() => {
+    const mastil = document.querySelector('.nav')
+    if (!mastil) return
+    const secciones = Array.from(document.querySelectorAll('[data-tinta]')).filter((el) => el !== mastil)
+    const io = new IntersectionObserver(
+      (entradas) => {
+        for (const e of entradas) {
+          if (e.isIntersecting) mastil.dataset.tinta = e.target.dataset.tinta
+        }
+      },
+      { rootMargin: '0px 0px -62% 0px' }
+    )
+    secciones.forEach((s) => io.observe(s))
+    mastil.dataset.tinta = 'claro'
+    return () => io.disconnect()
+  }, [sesion.user, sesion.perfil])
+
+  /* ---------- Entradas por capítulo: cada parte sube al entrar en pantalla ---------- */
+  useEffect(() => {
+    let io
+    const preparar = (el) => {
+      el.style.setProperty('--i', (Array.from(el.parentElement?.children ?? []).indexOf(el)) % 5)
+      io?.observe(el)
+    }
+
+    io = new IntersectionObserver(
+      (entradas) => {
+        for (const e of entradas) {
+          if (e.isIntersecting) {
+            e.target.classList.add('revelado')
+            io.unobserve(e.target)
+          }
+        }
+      },
+      { threshold: 0.12 }
+    )
+
+    document.querySelectorAll('[data-reveal]').forEach(preparar)
+
+    /* los nodos que llegan tarde (catálogo, reservas) revelan igual */
+    const refleja = new MutationObserver((mutaciones) => {
+      for (const m of mutaciones) {
+        m.addedNodes.forEach((n) => {
+          if (!(n instanceof HTMLElement)) return
+          if (n.hasAttribute?.('data-reveal')) preparar(n)
+          n.querySelectorAll?.('[data-reveal]').forEach(preparar)
+        })
+      }
+    })
+    refleja.observe(document.body, { childList: true, subtree: true })
+
+    return () => { io.disconnect(); refleja.disconnect() }
+  }, [sesion.user, sesion.perfil])
+
   /* ---------- Toast ---------- */
   const avisar = useCallback((mensaje) => {
     setToast(mensaje)
@@ -199,13 +254,13 @@ export default function App() {
 
       <main>
         <Hero filtros={filtros} setFiltros={setFiltros} />
-        <Experiencias />
         <Habitaciones
           habitaciones={visibles}
           estadoCat={estadoCat}
           filtros={filtros}
           onReservar={reservar}
         />
+        <Experiencias />
         <Entorno />
         {sesion.user && (
           <MisReservas
